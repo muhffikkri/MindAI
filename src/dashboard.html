@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindAI - Reflective Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="bg-custom-ivory text-gray-800 min-h-screen flex">
+    <aside class="w-64 bg-custom-sage/20 border-r border-custom-sage/30 p-6 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center space-x-2 mb-8">
+          <span class="text-2xl">🧠</span>
+          <h1 class="text-xl font-bold tracking-tight text-gray-900">MindAI</h1>
+        </div>
+        <nav class="space-y-3">
+          <a href="index.html" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-custom-sage/20 transition"> <span>💬</span> <span>AI Chat Interpreter</span> </a>
+          <a href="dashboard.html" class="flex items-center space-x-3 p-3 rounded-xl bg-custom-sage/30 font-medium text-gray-900"> <span>📊</span> <span>Reflective Dashboard</span> </a>
+          <a href="coming-soon.html" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-custom-sage/20 transition"> <span>🧩</span> <span>Coming Soon Features</span> </a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto space-y-6">
+      <header>
+        <h2 class="text-3xl font-bold text-gray-900">Dasbor Refleksi Personal</h2>
+        <p class="text-gray-600">Visualisasi akumulasi pemetaan kosakata emosional dari tubuh Anda.</p>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm space-y-4">
+          <h3 class="text-lg font-semibold text-gray-800">☁️ Emotional Wordcloud Map</h3>
+          <div id="wordcloud-container" class="w-full h-80 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden border border-gray-100">
+            <canvas id="wordcloud-canvas" class="w-full h-full"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm space-y-4">
+          <h3 class="text-lg font-semibold text-gray-800">📈 Frekuensi Log Emosi</h3>
+          <div id="emotion-list" class="space-y-2 text-sm max-h-80 overflow-y-auto">
+            <p class="text-gray-400 text-center py-8">Belum ada riwayat sesi emosi somatik tersimpan.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/wordcloud.js"></script>
+  </body>
+</html>

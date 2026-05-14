@@ -1,0 +1,38 @@
+/**
+ * @file style.css
+ * @description Custom color definition configuration based on 60-30-10 palette rules.
+ * @palette 60% Ivory Background, 30% Sage Green/Pastel Blue, 10% Soft Amber Distress.
+ * @author Anggota 2 (UI/UX Developer)
+ */
+
+:root {
+  --color-ivory: #fdfbf7;
+  --color-sage: #9caf88;
+  --color-pastel-blue: #b0c4de;
+  --color-amber: #e68a00;
+}
+
+/* Tailwind utility overrides integration mapping */
+.bg-custom-ivory {
+  background-color: var(--color-ivory);
+}
+.bg-custom-sage {
+  background-color: var(--color-sage);
+}
+.bg-custom-amber {
+  background-color: var(--color-amber);
+}
+.text-custom-sage {
+  color: var(--color-sage);
+}
+
+/* Custom smooth transitions */
+.weather-opt {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weather-opt.active {
+  border-color: var(--color-sage) !important;
+  background-color: rgba(156, 175, 136, 0.1);
+  transform: scale(1.03);
+}
