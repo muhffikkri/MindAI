@@ -304,12 +304,12 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const navByPage = {
-    home: "index.html",
-    chat: "chat.html",
-    mood: "mood-canvas.html",
-    dashboard: "dashboard.html",
-    resources: "resources.html",
-    settings: "settings.html",
+    home: "#home",
+    chat: "#chat",
+    mood: "#mood",
+    dashboard: "#dashboard",
+    resources: "#resources",
+    settings: "#settings",
   };
 
   function normalizeHref(href) {
