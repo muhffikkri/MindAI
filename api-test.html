@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindAI API Test</title>
+    <style>
+      :root {
+        --bg: #f6f1e8;
+        --panel: #fffaf2;
+        --text: #1f2a24;
+        --muted: #66736a;
+        --line: #d8d0c2;
+        --primary: #4f7c5b;
+        --primary-dark: #36563f;
+        --danger: #b85c38;
+        --shadow: 0 18px 50px rgba(31, 42, 36, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: radial-gradient(circle at top left, rgba(79, 124, 91, 0.12), transparent 30%), radial-gradient(circle at bottom right, rgba(184, 92, 56, 0.09), transparent 28%), var(--bg);
+        color: var(--text);
+      }
+
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        padding: 8px 12px;
+        border: 1px solid rgba(79, 124, 91, 0.2);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.55);
+        color: var(--primary-dark);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+      }
+
+      .subtitle {
+        margin: 0;
+        max-width: 68ch;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .panel {
+        background: rgba(255, 250, 242, 0.9);
+        border: 1px solid rgba(216, 208, 194, 0.9);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .panel-head {
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .panel-head strong {
+        font-size: 14px;
+        letter-spacing: 0.02em;
+      }
+
+      .panel-body {
+        padding: 20px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      button {
+        appearance: none;
+        border: 0;
+        border-radius: 14px;
+        padding: 12px 16px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease,
+          opacity 0.15s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
+        box-shadow: 0 10px 24px rgba(79, 124, 91, 0.22);
+      }
+
+      .btn-secondary {
+        background: #f4ede0;
+        color: var(--text);
+        border: 1px solid var(--line);
+      }
+
+      .btn-danger {
+        background: rgba(184, 92, 56, 0.12);
+        color: var(--danger);
+        border: 1px solid rgba(184, 92, 56, 0.18);
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .card-label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .card-value {
+        font-size: 14px;
+        word-break: break-word;
+      }
+
+      pre {
+        margin: 0;
+        padding: 18px;
+        border-radius: 18px;
+        background: #10211a;
+        color: #d8f5de;
+        overflow: auto;
+        min-height: 260px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .hint {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      code {
+        background: rgba(79, 124, 91, 0.1);
+        padding: 0 6px;
+        border-radius: 999px;
+      }
+
+      @media (max-width: 640px) {
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .panel-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <div class="badge">MindAI API Test</div>
+        <h1>Test Gemini API lewat prompt dialog</h1>
+        <p class="subtitle">File ini dibuat untuk uji cepat sebelum integrasi penuh. Klik tombol di bawah, masukkan API key lewat dialog prompt, lalu kirim prompt test untuk melihat respons langsung dari Gemini.</p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <strong>Status Konfigurasi</strong>
+          <span id="status-label">API key belum diset</span>
+        </div>
+
+        <div class="panel-body">
+          <div class="controls">
+            <button id="set-key-btn" class="btn-secondary" type="button">Set API Key</button>
+            <button id="run-test-btn" class="btn-primary" type="button">Run Test Prompt</button>
+            <button id="clear-key-btn" class="btn-danger" type="button">Clear Saved Key</button>
+          </div>
+
+          <div class="info-grid">
+            <div class="card">
+              <span class="card-label">Saved Key Source</span>
+              <div id="source-value" class="card-value">localStorage / prompt dialog / .env lokal</div>
+            </div>
+            <div class="card">
+              <span class="card-label">Last Request</span>
+              <div id="request-value" class="card-value">Belum ada request</div>
+            </div>
+          </div>
+
+          <p class="hint">
+            Key yang diinput lewat prompt akan disimpan di <code>localStorage</code>. Jika kosong, file ini tetap bisa membaca <code>.env</code> lokal dengan variabel <code>GEMINI_API_KEY</code> atau <code>MIND_AI_GEMINI_KEY</code> saat
+            dibuka lewat server lokal.
+          </p>
+
+          <pre id="output">Menunggu input...</pre>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const STORAGE_KEY = "mindai_gemini_key";
+      const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+      let cachedEnv = null;
+
+      const statusLabel = document.getElementById("status-label");
+      const sourceValue = document.getElementById("source-value");
+      const requestValue = document.getElementById("request-value");
+      const output = document.getElementById("output");
+      const setKeyBtn = document.getElementById("set-key-btn");
+      const runTestBtn = document.getElementById("run-test-btn");
+      const clearKeyBtn = document.getElementById("clear-key-btn");
+
+      function parseEnvText(text) {
+        return text.split(/\r?\n/).reduce((accumulator, line) => {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) {
+            return accumulator;
+          }
+
+          const separatorIndex = trimmed.indexOf("=");
+          if (separatorIndex === -1) {
+            return accumulator;
+          }
+
+          const key = trimmed.slice(0, separatorIndex).trim();
+          const value = trimmed
+            .slice(separatorIndex + 1)
+            .trim()
+            .replace(/^['\"]|['\"]$/g, "");
+          if (key) {
+            accumulator[key] = value;
+          }
+
+          return accumulator;
+        }, {});
+      }
+
+      async function loadEnvFallback() {
+        if (cachedEnv) {
+          return cachedEnv;
+        }
+
+        const candidates = [".env", "src/.env", "../.env", "../../.env"];
+        for (const candidate of candidates) {
+          try {
+            const response = await fetch(candidate, { cache: "no-store" });
+            if (!response.ok) {
+              continue;
+            }
+
+            cachedEnv = parseEnvText(await response.text());
+            return cachedEnv;
+          } catch (error) {
+            // Ignore and continue to the next candidate.
+          }
+        }
+
+        cachedEnv = {};
+        return cachedEnv;
+      }
+
+      function getSavedKey() {
+        return localStorage.getItem(STORAGE_KEY)?.trim() || "";
+      }
+
+      function setSavedKey(key) {
+        const normalized = (key || "").trim();
+        if (normalized) {
+          localStorage.setItem(STORAGE_KEY, normalized);
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+        refreshKeyStatus();
+      }
+
+      function clearSavedKey() {
+        localStorage.removeItem(STORAGE_KEY);
+        refreshKeyStatus();
+      }
+
+      async function resolveApiKey() {
+        const storedKey = getSavedKey();
+        if (storedKey) {
+          return { key: storedKey, source: "localStorage" };
+        }
+
+        const env = await loadEnvFallback();
+        const envKey = (env.GEMINI_API_KEY || env.MIND_AI_GEMINI_KEY || "").trim();
+        if (envKey) {
+          return { key: envKey, source: ".env lokal" };
+        }
+
+        return { key: "", source: "none" };
+      }
+
+      async function refreshKeyStatus() {
+        const { key, source } = await resolveApiKey();
+        if (key) {
+          statusLabel.textContent = "API key siap dipakai";
+          sourceValue.textContent = source;
+        } else {
+          statusLabel.textContent = "API key belum diset";
+          sourceValue.textContent = "Tidak ditemukan";
+        }
+      }
+
+      async function runGeminiTest() {
+        const current = await resolveApiKey();
+        if (!current.key) {
+          alert("API key belum ada. Klik Set API Key dulu atau siapkan file .env lokal.");
+          return;
+        }
+
+        const promptText = prompt("Masukkan prompt test untuk Gemini:", "Jelaskan satu langkah sederhana untuk menenangkan diri saat cemas.");
+        if (promptText === null) {
+          return;
+        }
+
+        const finalPrompt = promptText.trim();
+        if (!finalPrompt) {
+          alert("Prompt test tidak boleh kosong.");
+          return;
+        }
+
+        requestValue.textContent = finalPrompt;
+        output.textContent = "Mengirim request...";
+        runTestBtn.disabled = true;
+
+        try {
+          const payload = {
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: finalPrompt }],
+              },
+            ],
+          };
+
+          const response = await fetch(`${GEMINI_ENDPOINT}?key=${encodeURIComponent(current.key)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data?.error?.message || "Request gagal tanpa pesan error yang jelas.");
+          }
+
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada teks balasan dari API.";
+          output.textContent = text;
+          statusLabel.textContent = "Request berhasil";
+        } catch (error) {
+          output.textContent = `Error:\n${error.message}`;
+          statusLabel.textContent = "Request gagal";
+        } finally {
+          runTestBtn.disabled = false;
+        }
+      }
+
+      setKeyBtn.addEventListener("click", () => {
+        const existing = getSavedKey();
+        const enteredKey = prompt("Masukkan Gemini API Key:", existing || "");
+
+        if (enteredKey === null) {
+          return;
+        }
+
+        setSavedKey(enteredKey);
+        alert(enteredKey.trim() ? "API key disimpan di localStorage." : "API key lokal dihapus.");
+      });
+
+      clearKeyBtn.addEventListener("click", () => {
+        clearSavedKey();
+        alert("API key lokal dihapus.");
+      });
+
+      runTestBtn.addEventListener("click", runGeminiTest);
+
+      refreshKeyStatus();
+    </script>
+  </body>
+</html>

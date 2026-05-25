@@ -23,7 +23,8 @@ let appState = {
 document.addEventListener("DOMContentLoaded", () => {
   initStorageEngine();
   registerUIEventListeners();
-  checkApiKeyPresence();
+  void checkApiKeyPresence();
+  hydrateApiKeyField();
 });
 
 /**
@@ -44,12 +45,38 @@ function initStorageEngine() {
 /**
  * @description Memeriksa eksistensi API Key lokal di browser.
  */
-function checkApiKeyPresence() {
-  const key = localStorage.getItem(STORAGE_KEYS.GEMINI_KEY);
+async function checkApiKeyPresence() {
+  const keyManager = window.MindAIKeyManager;
+  const key = keyManager ? await keyManager.resolveGeminiApiKey() : localStorage.getItem(STORAGE_KEYS.GEMINI_KEY);
+  const statusText = document.getElementById("api-key-status");
+
   if (!key || key.trim() === "") {
     console.warn("Gemini API Key is empty. Restricting Chat Interface Access.");
-    // Jalankan logika untuk memicu/menampilkan modal Settings secara otomatis jika kosong
-    document.getElementById("settings-modal").classList.remove("hidden");
+    if (statusText) {
+      statusText.textContent = "Belum ada key tersimpan. Tambahkan di bawah atau lewat file .env lokal.";
+    }
+
+    document.getElementById("page-settings")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("api-key-input")?.focus();
+    return;
+  }
+
+  if (statusText) {
+    statusText.textContent = keyManager && keyManager.getStoredGeminiApiKey() ? "Menggunakan key dari localStorage." : "Menggunakan key dari file .env lokal atau konfigurasi browser.";
+  }
+}
+
+function hydrateApiKeyField() {
+  const input = document.getElementById("api-key-input");
+  const statusText = document.getElementById("api-key-status");
+  const storedKey = window.MindAIKeyManager?.getStoredGeminiApiKey() || localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || "";
+
+  if (input && storedKey) {
+    input.value = storedKey;
+  }
+
+  if (statusText) {
+    statusText.textContent = storedKey ? "Key tersimpan di localStorage dan akan diprioritaskan." : "Jika localStorage kosong, aplikasi mencoba membaca file .env lokal.";
   }
 }
 
@@ -88,19 +115,45 @@ function registerUIEventListeners() {
   }
 
   // Modal Control Logic Handlers (Settings & Distress)
-  document.getElementById("btn-open-settings")?.addEventListener("click", () => document.getElementById("settings-modal").classList.remove("hidden"));
-  document.getElementById("btn-close-settings")?.addEventListener("click", () => document.getElementById("settings-modal").classList.add("hidden"));
+  document.getElementById("btn-open-settings")?.addEventListener("click", () => document.getElementById("page-settings")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  document.getElementById("btn-close-settings")?.addEventListener("click", () => document.getElementById("page-settings")?.scrollIntoView({ behavior: "smooth", block: "start" }));
 
   document.getElementById("btn-distress")?.addEventListener("click", () => document.getElementById("coping-modal").classList.remove("hidden"));
   document.getElementById("btn-close-coping")?.addEventListener("click", () => document.getElementById("coping-modal").classList.add("hidden"));
 
   // Save Action API Key Configuration Trigger
   document.getElementById("btn-save-settings")?.addEventListener("click", () => {
-    const inputVal = document.getElementById("api-key-input").value;
-    if (inputVal.trim() !== "") {
+    const inputEl = document.getElementById("api-key-input");
+    const inputVal = inputEl?.value || "";
+
+    if (window.MindAIKeyManager) {
+      const savedKey = window.MindAIKeyManager.setStoredGeminiApiKey(inputVal);
+      if (savedKey) {
+        alert("API Key berhasil disimpan di peramban lokal.");
+      } else {
+        alert("API Key lokal dihapus. Aplikasi akan mencoba memakai file .env lokal bila tersedia.");
+      }
+    } else if (inputVal.trim() !== "") {
       localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, inputVal.trim());
-      document.getElementById("settings-modal").classList.add("hidden");
       alert("API Key berhasil disimpan di peramban lokal.");
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.GEMINI_KEY);
+      alert("API Key lokal dihapus. Aplikasi akan mencoba memakai file .env lokal bila tersedia.");
     }
+
+    hydrateApiKeyField();
+  });
+
+  document.getElementById("btn-clear-api-key")?.addEventListener("click", () => {
+    window.MindAIKeyManager?.clearStoredGeminiApiKey();
+    localStorage.removeItem(STORAGE_KEYS.GEMINI_KEY);
+
+    const inputEl = document.getElementById("api-key-input");
+    if (inputEl) {
+      inputEl.value = "";
+    }
+
+    hydrateApiKeyField();
+    alert("API Key lokal dihapus.");
   });
 }

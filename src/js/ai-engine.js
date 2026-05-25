@@ -11,6 +11,100 @@ const GEMINI_CONFIG = {
     "Kamu adalah MindAI, sebuah kecerdasan buatan interaktif yang bertindak sebagai konselor psikologis penyabar, ramah, hangat, dan terlatih khusus menggunakan metode Terapi Somatik untuk membantu individu dengan Alexithymia. Jangan pernah memulai obrolan dengan pertanyaan abstrak seperti 'Apa yang kamu rasakan hari ini?'. Fokuslah memandu pengguna untuk mengidentifikasi kondisi fisik tubuh mereka terlebih dahulu (seperti ketegangan otot di pundak, detak jantung, atau suhu tangan) atau gunakan analogi metafora (seperti cuaca atau warna). Gunakan kalimat pendek, menenangkan, dan jangan menghakimi.",
 };
 
+const GEMINI_KEY_STORAGE = "mindai_gemini_key";
+const LOCAL_ENV_CANDIDATES = ["../.env", "../../.env", "./.env"];
+let cachedLocalEnv = null;
+
+function parseEnvFile(envText) {
+  return envText.split(/\r?\n/).reduce((accumulator, line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      return accumulator;
+    }
+
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex === -1) {
+      return accumulator;
+    }
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const rawValue = trimmed.slice(separatorIndex + 1).trim();
+    const value = rawValue.replace(/^['\"]|['\"]$/g, "");
+
+    if (key) {
+      accumulator[key] = value;
+    }
+
+    return accumulator;
+  }, {});
+}
+
+async function loadLocalEnvConfig() {
+  if (cachedLocalEnv) {
+    return cachedLocalEnv;
+  }
+
+  for (const candidate of LOCAL_ENV_CANDIDATES) {
+    try {
+      const response = await fetch(candidate, { cache: "no-store" });
+      if (!response.ok) {
+        continue;
+      }
+
+      const parsedEnv = parseEnvFile(await response.text());
+      cachedLocalEnv = parsedEnv;
+      return parsedEnv;
+    } catch (error) {
+      continue;
+    }
+  }
+
+  cachedLocalEnv = {};
+  return cachedLocalEnv;
+}
+
+function getStoredGeminiApiKey() {
+  return localStorage.getItem(GEMINI_KEY_STORAGE)?.trim() || "";
+}
+
+function setStoredGeminiApiKey(apiKey) {
+  const normalizedKey = apiKey.trim();
+  if (normalizedKey) {
+    localStorage.setItem(GEMINI_KEY_STORAGE, normalizedKey);
+  } else {
+    localStorage.removeItem(GEMINI_KEY_STORAGE);
+  }
+
+  return normalizedKey;
+}
+
+function clearStoredGeminiApiKey() {
+  localStorage.removeItem(GEMINI_KEY_STORAGE);
+}
+
+async function resolveGeminiApiKey() {
+  const storedKey = getStoredGeminiApiKey();
+  if (storedKey) {
+    return storedKey;
+  }
+
+  const browserEnvKey = window.MIND_AI_ENV?.GEMINI_API_KEY || window.__MIND_AI_ENV__?.GEMINI_API_KEY;
+  if (browserEnvKey && browserEnvKey.trim()) {
+    return browserEnvKey.trim();
+  }
+
+  const localEnv = await loadLocalEnvConfig();
+  return (localEnv.GEMINI_API_KEY || localEnv.MIND_AI_GEMINI_KEY || "").trim();
+}
+
+window.MindAIKeyManager = {
+  getStoredGeminiApiKey,
+  setStoredGeminiApiKey,
+  clearStoredGeminiApiKey,
+  resolveGeminiApiKey,
+  loadLocalEnvConfig,
+};
+
 /**
  * @description Fungsi perantara untuk menginjeksikan sapaan pembuka AI ke UI.
  */
@@ -39,7 +133,7 @@ async function triggerAIFirstGreeting(weather, colorEnergy) {
  * @param {Array} historyLog - Array log pesan terstruktur [{role: "user/model", parts: [{text: "..."}]}]
  */
 async function fetchGeminiResponse(historyLog) {
-  const apiKey = localStorage.getItem("mindai_gemini_key");
+  const apiKey = await resolveGeminiApiKey();
   if (!apiKey) {
     alert("API Key Kosong! Silakan atur token Anda di panel Settings.");
     return null;
@@ -86,7 +180,7 @@ async function fetchGeminiResponse(historyLog) {
  * Dipanggil saat user menekan tombol 'Selesai'.
  */
 async function runHiddenEmotionExtraction() {
-  const apiKey = localStorage.getItem("mindai_gemini_key");
+  const apiKey = await resolveGeminiApiKey();
   const history = JSON.parse(localStorage.getItem("mindai_chat_history") || "[]");
 
   if (history.length < 2) return; // Belum cukup konteks
