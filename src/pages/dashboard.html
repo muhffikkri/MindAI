@@ -32,8 +32,13 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm space-y-4">
           <h3 class="text-lg font-semibold text-gray-800">☁️ Emotional Wordcloud Map</h3>
-          <div id="wordcloud-container" class="w-full h-80 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden border border-gray-100">
-            <canvas id="wordcloud-canvas" class="w-full h-full"></canvas>
+          <div id="wordcloud-container" class="w-full h-80 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden border border-gray-100 relative">
+            <div id="wordcloud-placeholder" class="wordcloud-placeholder">
+              <div class="wordcloud-placeholder-icon">☁️</div>
+              <h4>Wordcloud preview</h4>
+              <p>Placeholder visual ini akan diganti wordcloud saat log emosi sudah siap dirender.</p>
+            </div>
+            <canvas id="wordcloud-canvas" class="w-full h-full hidden"></canvas>
           </div>
         </div>
 

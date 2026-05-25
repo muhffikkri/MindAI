@@ -16,25 +16,61 @@ document.addEventListener("DOMContentLoaded", () => {
 function renderReflectiveWordCloud() {
   // Ambil log kata dari LocalStorage
   const storedLogs = JSON.parse(localStorage.getItem("mindai_emotion_logs")) || [];
+  const placeholder = document.getElementById("wordcloud-placeholder");
+  const canvasElement = document.getElementById("wordcloud-canvas");
 
   if (storedLogs.length === 0) {
-    console.log("Log riwayat kata emosi kosong. Melewati rendering grafik Wordcloud.");
+    if (placeholder) {
+      placeholder.classList.remove("hidden");
+    }
+    if (canvasElement) {
+      canvasElement.classList.add("hidden");
+    }
+    console.log("Log riwayat kata emosi kosong. Menampilkan placeholder wordcloud.");
     return;
   }
 
-  // Transformasi data array menjadi pasangan matriks list format frekuensi: [['Kata', Ukuran], ['Kata', Ukuran]]
-  // Contoh dummy transformasi:
-  const mockWordFreqList = [
-    ["Cemas", 24],
-    ["Lelah", 18],
-    ["Gelisah", 15],
-    ["Kewalahan", 30],
-    ["Tenang", 12],
-  ];
+  if (placeholder) {
+    placeholder.classList.add("hidden");
+  }
+  if (canvasElement) {
+    canvasElement.classList.remove("hidden");
+  }
 
-  const canvasElement = document.getElementById("wordcloud-canvas");
+  const emotionCounts = storedLogs.reduce((counts, entry) => {
+    const emotions = Array.isArray(entry?.emotions) ? entry.emotions : [];
+    emotions.forEach((emotion) => {
+      const normalizedEmotion = String(emotion).trim();
+      if (!normalizedEmotion) {
+        return;
+      }
+      counts[normalizedEmotion] = (counts[normalizedEmotion] || 0) + 1;
+    });
+    return counts;
+  }, {});
+
+  const mockWordFreqList =
+    Object.keys(emotionCounts).length > 0
+      ? Object.entries(emotionCounts).map(([emotion, count]) => [emotion, Math.max(12, count * 8)])
+      : [
+          ["Cemas", 24],
+          ["Lelah", 18],
+          ["Gelisah", 15],
+          ["Kewalahan", 30],
+          ["Tenang", 12],
+        ];
 
   // Konfigurasi Pustaka WordCloud2.js Engine Call
+  if (typeof WordCloud !== "function" || !canvasElement) {
+    if (placeholder) {
+      placeholder.classList.remove("hidden");
+    }
+    if (canvasElement) {
+      canvasElement.classList.add("hidden");
+    }
+    return;
+  }
+
   WordCloud(canvasElement, {
     list: mockWordFreqList,
     gridSize: 12,

@@ -217,42 +217,48 @@
               </div>
             </div>
 
-            <aside class="chat-sidebar">
-              <div class="sidebar-card">
-                <h3>Recent Topics</h3>
-                <ul class="topic-list">
-                  <li>Work stress management</li>
-                  <li>Sleep improvement</li>
-                  <li>Breathing techniques</li>
-                  <li>Work-life balance</li>
-                </ul>
-              </div>
-
-              <div class="sidebar-card">
-                <h3>Today's Emotions</h3>
-                <div class="emotion-tags">
-                  <span class="emotion-tag">Anxious</span>
-                  <span class="emotion-tag">Focused</span>
-                  <span class="emotion-tag">Tired</span>
+            <aside class="chat-sidebar" id="chat-sidebar">
+              <button type="button" class="chat-sidebar-handle" id="chat-sidebar-handle" aria-expanded="false" aria-controls="chat-sidebar-content">
+                <span class="chat-sidebar-grip" aria-hidden="true"></span>
+                <span class="chat-sidebar-handle-text">Tap to expand insights</span>
+              </button>
+              <div class="chat-sidebar-content" id="chat-sidebar-content">
+                <div class="sidebar-card">
+                  <h3>Recent Topics</h3>
+                  <ul class="topic-list">
+                    <li>Work stress management</li>
+                    <li>Sleep improvement</li>
+                    <li>Breathing techniques</li>
+                    <li>Work-life balance</li>
+                  </ul>
                 </div>
-              </div>
 
-              <div class="sidebar-card">
-                <h3>Quick Techniques</h3>
-                <ul class="technique-list">
-                  <li>
-                    <strong>Box Breathing</strong>
-                    <p>4-4-4-4 breathing rhythm</p>
-                  </li>
-                  <li>
-                    <strong>5-4-3-2-1 Grounding</strong>
-                    <p>Use your senses to ground</p>
-                  </li>
-                  <li>
-                    <strong>Progressive Relaxation</strong>
-                    <p>Tense and release muscles</p>
-                  </li>
-                </ul>
+                <div class="sidebar-card">
+                  <h3>Today's Emotions</h3>
+                  <div class="emotion-tags">
+                    <span class="emotion-tag">Anxious</span>
+                    <span class="emotion-tag">Focused</span>
+                    <span class="emotion-tag">Tired</span>
+                  </div>
+                </div>
+
+                <div class="sidebar-card">
+                  <h3>Quick Techniques</h3>
+                  <ul class="technique-list">
+                    <li>
+                      <strong>Box Breathing</strong>
+                      <p>4-4-4-4 breathing rhythm</p>
+                    </li>
+                    <li>
+                      <strong>5-4-3-2-1 Grounding</strong>
+                      <p>Use your senses to ground</p>
+                    </li>
+                    <li>
+                      <strong>Progressive Relaxation</strong>
+                      <p>Tense and release muscles</p>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </aside>
           </div>
@@ -270,7 +276,18 @@
               <h3>Emotional Intensity</h3>
               <div class="slider-container">
                 <label for="mood-slider">From calm to intense</label>
+                <div class="mood-spectrum" aria-hidden="true">
+                  <span><span class="spectrum-icon">🫧</span> Calm</span>
+                  <span><span class="spectrum-icon">🌿</span> Steady</span>
+                  <span><span class="spectrum-icon">⚡</span> Active</span>
+                  <span><span class="spectrum-icon">🔥</span> Intense</span>
+                </div>
                 <input type="range" id="mood-slider" class="mood-slider" min="0" max="100" value="50" />
+                <div class="slider-legend">
+                  <span>Low energy</span>
+                  <span>Balanced</span>
+                  <span>High energy</span>
+                </div>
                 <div class="slider-value"><span id="slider-display">50</span>/100</div>
               </div>
             </div>
@@ -278,16 +295,16 @@
             <div class="form-card">
               <h3>Select Your Emotions</h3>
               <div class="emotion-grid">
-                <button class="emotion-btn">Calm</button>
-                <button class="emotion-btn active">Anxious</button>
-                <button class="emotion-btn">Happy</button>
-                <button class="emotion-btn">Sad</button>
-                <button class="emotion-btn">Grateful</button>
-                <button class="emotion-btn">Angry</button>
-                <button class="emotion-btn">Tired</button>
-                <button class="emotion-btn">Energized</button>
-                <button class="emotion-btn">Stressed</button>
-                <button class="emotion-btn">Peaceful</button>
+                <button type="button" class="emotion-btn emotion-calm" data-emotion="calm"><span class="emotion-icon">🫧</span><span>Calm</span></button>
+                <button type="button" class="emotion-btn emotion-anxious active" data-emotion="anxious"><span class="emotion-icon">⚡</span><span>Anxious</span></button>
+                <button type="button" class="emotion-btn emotion-happy" data-emotion="happy"><span class="emotion-icon">🌤️</span><span>Happy</span></button>
+                <button type="button" class="emotion-btn emotion-sad" data-emotion="sad"><span class="emotion-icon">🌧️</span><span>Sad</span></button>
+                <button type="button" class="emotion-btn emotion-grateful" data-emotion="grateful"><span class="emotion-icon">💚</span><span>Grateful</span></button>
+                <button type="button" class="emotion-btn emotion-angry" data-emotion="angry"><span class="emotion-icon">🔥</span><span>Angry</span></button>
+                <button type="button" class="emotion-btn emotion-tired" data-emotion="tired"><span class="emotion-icon">🌙</span><span>Tired</span></button>
+                <button type="button" class="emotion-btn emotion-energized" data-emotion="energized"><span class="emotion-icon">💥</span><span>Energized</span></button>
+                <button type="button" class="emotion-btn emotion-stressed" data-emotion="stressed"><span class="emotion-icon">🌀</span><span>Stressed</span></button>
+                <button type="button" class="emotion-btn emotion-peaceful" data-emotion="peaceful"><span class="emotion-icon">🌿</span><span>Peaceful</span></button>
               </div>
             </div>
 
@@ -296,26 +313,32 @@
               <div class="sensation-grid">
                 <label class="checkbox-item">
                   <input type="checkbox" />
+                  <span class="sensation-icon">💢</span>
                   <span>Tension in neck/shoulders</span>
                 </label>
                 <label class="checkbox-item">
                   <input type="checkbox" />
+                  <span class="sensation-icon">🫀</span>
                   <span>Tightness in chest</span>
                 </label>
                 <label class="checkbox-item">
                   <input type="checkbox" />
+                  <span class="sensation-icon">🧠</span>
                   <span>Headache</span>
                 </label>
                 <label class="checkbox-item">
                   <input type="checkbox" />
+                  <span class="sensation-icon">🤢</span>
                   <span>Stomach discomfort</span>
                 </label>
                 <label class="checkbox-item">
                   <input type="checkbox" />
+                  <span class="sensation-icon">⚡</span>
                   <span>Restlessness</span>
                 </label>
                 <label class="checkbox-item">
                   <input type="checkbox" />
+                  <span class="sensation-icon">◯</span>
                   <span>None</span>
                 </label>
               </div>
@@ -327,7 +350,18 @@
             </div>
 
             <div class="form-actions">
-              <button class="btn btn-primary btn-lg">Save Check-in</button>
+              <button type="button" class="btn btn-primary btn-lg" id="save-checkin-btn">Save Check-in</button>
+            </div>
+          </div>
+
+          <div class="modal-overlay hidden" id="checkin-modal" aria-hidden="true">
+            <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="checkin-modal-title">
+              <div class="modal-icon" id="checkin-modal-icon">✓</div>
+              <h3 id="checkin-modal-title">Check-in saved</h3>
+              <p id="checkin-modal-message">Your mood check-in has been stored successfully.</p>
+              <div class="modal-actions">
+                <button type="button" class="btn btn-primary" id="checkin-modal-close">Close</button>
+              </div>
             </div>
           </div>
         </section>
