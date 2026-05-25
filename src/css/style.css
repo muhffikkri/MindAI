@@ -37,7 +37,6 @@
   transform: scale(1.03);
 }
 
-
 /* ===========================
    SomaCare - Main Stylesheet
    =========================== */
@@ -67,12 +66,13 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
 body {
-  font-family: 'Inter', 'Poppins', sans-serif;
+  font-family: "Inter", "Poppins", sans-serif;
   background: var(--bg-main);
   color: var(--text-primary);
   line-height: 1.6;
@@ -355,6 +355,7 @@ body {
 
 .page-header {
   margin-bottom: 40px;
+  padding-left: 24px;
 }
 
 .page-header h2 {
@@ -589,7 +590,7 @@ body {
   padding: 10px 14px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   transition: all 0.2s ease;
 }
@@ -811,7 +812,7 @@ body {
 }
 
 .user-message {
-  justify-content: flex-end;
+  justify-content: flex-start;
   flex-direction: row-reverse;
 }
 
@@ -875,7 +876,7 @@ body {
   padding: 10px 14px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   resize: none;
   max-height: 100px;
@@ -1155,7 +1156,7 @@ body {
 }
 
 .steps li:before {
-  content: '•';
+  content: "•";
   position: absolute;
   left: 0;
   color: var(--primary);
@@ -1459,7 +1460,9 @@ body {
   padding: 24px;
   background: linear-gradient(135deg, rgba(66, 100, 71, 0.96), rgba(130, 114, 97, 0.94));
   color: white;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
+  transition:
+    opacity 0.35s ease,
+    visibility 0.35s ease;
 }
 
 .splash-screen.hidden {
