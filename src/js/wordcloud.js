@@ -38,7 +38,7 @@ function renderReflectiveWordCloud() {
   }
 
   const emotionCounts = storedLogs.reduce((counts, entry) => {
-    const emotions = Array.isArray(entry?.emotions) ? entry.emotions : [];
+    const emotions = Array.isArray(entry) ? entry : Array.isArray(entry?.emotions) ? entry.emotions : [];
     emotions.forEach((emotion) => {
       const normalizedEmotion = String(emotion).trim();
       if (!normalizedEmotion) {

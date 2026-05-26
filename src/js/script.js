@@ -85,9 +85,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function pushChatHistory(role, text) {
     const history = readChatHistory();
-    history.push({ role, parts: [{ text }] });
+    history.push({
+      role,
+      timestamp: new Date().toISOString(),
+      parts: [{ text }],
+    });
     writeChatHistory(history);
     return history;
+  }
+
+  function formatHistoryTimestamp(timestamp) {
+    if (!timestamp) {
+      return getCurrentTime();
+    }
+
+    const parsedDate = new Date(timestamp);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return getCurrentTime();
+    }
+
+    const hours = String(parsedDate.getHours()).padStart(2, "0");
+    const minutes = String(parsedDate.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
   }
 
   function appendMessage(role, text, timeLabel = getCurrentTime()) {
@@ -103,6 +122,38 @@ document.addEventListener("DOMContentLoaded", function () {
     chatMessages.appendChild(messageEl);
     return messageEl;
   }
+
+  function renderStoredChatHistory() {
+    const storedHistory = readChatHistory();
+    if (storedHistory.length === 0) {
+      return;
+    }
+
+    chatMessages.innerHTML = "";
+    storedHistory.forEach((entry) => {
+      const text = entry?.parts
+        ?.map((part) => part?.text || "")
+        .join("")
+        .trim();
+      if (!text) {
+        return;
+      }
+
+      appendMessage(entry.role, text, formatHistoryTimestamp(entry.timestamp));
+    });
+
+    scrollToBottom();
+  }
+
+  async function maybeExtractEmotionLabels() {
+    if (!aiEngine?.extractEmotionLabelsFromHistory) {
+      return;
+    }
+
+    await aiEngine.extractEmotionLabelsFromHistory(readChatHistory());
+  }
+
+  renderStoredChatHistory();
 
   // Auto-resize textarea
   chatInput.addEventListener("input", function () {
@@ -169,6 +220,8 @@ document.addEventListener("DOMContentLoaded", function () {
       appendMessage("model", assistantReply);
       pushChatHistory("model", assistantReply);
       scrollToBottom();
+
+      await maybeExtractEmotionLabels();
     } catch (error) {
       typingEl.remove();
       console.error("Chat response error:", error);
@@ -176,6 +229,7 @@ document.addEventListener("DOMContentLoaded", function () {
       appendMessage("model", fallbackMessage);
       pushChatHistory("model", fallbackMessage);
       scrollToBottom();
+      await maybeExtractEmotionLabels();
     }
   }
 

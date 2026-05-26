@@ -14,6 +14,8 @@ const GEMINI_CONFIG = {
 const GEMINI_KEY_STORAGE = "mindai_gemini_key";
 const LOCAL_ENV_PATH = "/.env";
 const CHAT_HISTORY_STORAGE = "mindai_chat_history";
+const EMOTION_LOGS_STORAGE = "mindai_emotion_logs";
+const EMOTION_EXTRACTION_META_STORAGE = "mindai_emotion_extraction_meta";
 let cachedLocalEnv = null;
 
 function parseEnvFile(envText) {
@@ -92,9 +94,51 @@ function writeChatHistory(history) {
 
 function appendChatHistory(entry) {
   const history = readChatHistory();
-  history.push(entry);
+  history.push({
+    timestamp: new Date().toISOString(),
+    ...entry,
+  });
   writeChatHistory(history);
   return history;
+}
+
+function readEmotionExtractionMeta() {
+  try {
+    return JSON.parse(localStorage.getItem(EMOTION_EXTRACTION_META_STORAGE) || "{}");
+  } catch (error) {
+    return {};
+  }
+}
+
+function writeEmotionExtractionMeta(meta) {
+  localStorage.setItem(EMOTION_EXTRACTION_META_STORAGE, JSON.stringify(meta));
+}
+
+function countUserMessages(history) {
+  return history.reduce((count, entry) => (entry?.role === "user" ? count + 1 : count), 0);
+}
+
+function normalizeEmotionLabels(labels) {
+  if (!Array.isArray(labels)) return [];
+
+  return labels
+    .map((label) => String(label).trim())
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
+function saveEmotionExtractionResult(labels, userMessageCount) {
+  const currentLogs = JSON.parse(localStorage.getItem(EMOTION_LOGS_STORAGE) || "[]");
+  const updatedLogs = [
+    ...currentLogs,
+    {
+      timestamp: new Date().toISOString(),
+      userMessageCount,
+      emotions: labels,
+    },
+  ];
+
+  localStorage.setItem(EMOTION_LOGS_STORAGE, JSON.stringify(updatedLogs));
 }
 
 function formatChatTime(date = new Date()) {
@@ -185,11 +229,103 @@ async function generateAssistantReply(historyLog, userMessage) {
   return responseText?.trim() || "Aku ada di sini bersamamu. Coba perhatikan dulu bagian tubuh mana yang paling terasa tidak nyaman saat ini.";
 }
 
+function shouldExtractEmotionLabels(history) {
+  const userMessageCount = countUserMessages(history);
+  const meta = readEmotionExtractionMeta();
+
+  if (userMessageCount < 5) {
+    return false;
+  }
+
+  if (userMessageCount % 5 !== 0) {
+    return false;
+  }
+
+  if (Number(meta.lastExtractedUserCount || 0) >= userMessageCount) {
+    return false;
+  }
+
+  return true;
+}
+
+async function extractEmotionLabelsFromHistory(history = readChatHistory(), options = {}) {
+  const { force = false } = options;
+  const userMessageCount = countUserMessages(history);
+
+  if (history.length < 2 || (!force && !shouldExtractEmotionLabels(history))) {
+    return null;
+  }
+
+  const apiKey = await resolveGeminiApiKey();
+  if (!apiKey) {
+    return null;
+  }
+
+  const extractionPrompt = {
+    role: "user",
+    parts: [
+      {
+        text: 'Berdasarkan seluruh percakapan kita di atas, ekstrak maksimal 5 label emosi (kata sifat tunggal dalam Bahasa Indonesia) yang paling menggambarkan kondisi pengguna. Berikan output HANYA dalam format JSON murni seperti ini: {"emotions": ["Marah", "Lelah"]}',
+      },
+    ],
+  };
+
+  const payload = {
+    contents: [...history, extractionPrompt],
+    generationConfig: {
+      response_mime_type: "application/json",
+    },
+  };
+
+  try {
+    const response = await fetch(`${GEMINI_CONFIG.ENDPOINT_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData?.error?.message || "Terjadi kesalahan saat ekstraksi emosi.");
+    }
+
+    const data = await response.json();
+    const jsonString = data?.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || "")
+      .join("")
+      .trim();
+
+    if (!jsonString) {
+      throw new Error("Respons ekstraksi emosi kosong.");
+    }
+
+    const parsedResult = JSON.parse(jsonString);
+    const emotions = normalizeEmotionLabels(parsedResult?.emotions);
+
+    if (emotions.length === 0) {
+      return null;
+    }
+
+    saveEmotionExtractionResult(emotions, userMessageCount);
+    writeEmotionExtractionMeta({
+      lastExtractedUserCount: userMessageCount,
+      lastExtractionAt: new Date().toISOString(),
+    });
+
+    return emotions;
+  } catch (error) {
+    console.error("Extraction Error:", error);
+    return null;
+  }
+}
+
 window.MindAIChatEngine = {
   appendChatHistory,
   buildAssistantPrompt,
   buildStarterPrompt,
+  countUserMessages,
   clearStoredGeminiApiKey,
+  extractEmotionLabelsFromHistory,
   fetchGeminiResponse,
   formatChatTime,
   generateAssistantReply,
@@ -198,7 +334,10 @@ window.MindAIChatEngine = {
   loadLocalEnvConfig,
   readChatHistory,
   resolveGeminiApiKey,
+  saveEmotionExtractionResult,
   setStoredGeminiApiKey,
+  shouldExtractEmotionLabels,
+  writeEmotionExtractionMeta,
   writeChatHistory,
 };
 
@@ -309,50 +448,5 @@ async function fetchGeminiResponse(historyLog) {
  * Dipanggil saat user menekan tombol 'Selesai'.
  */
 async function runHiddenEmotionExtraction() {
-  const apiKey = await resolveGeminiApiKey();
-  const history = readChatHistory();
-
-  if (history.length < 2) return; // Belum cukup konteks
-
-  // Prompt khusus untuk ekstraksi emosi
-  const extractionPrompt = {
-    role: "user",
-    parts: [
-      {
-        text: 'Berdasarkan seluruh percakapan kita di atas, ekstrak maksimal 5 label emosi (kata sifat tunggal dalam Bahasa Indonesia) yang paling menggambarkan kondisi pengguna. Berikan output HANYA dalam format JSON murni seperti ini: {"emotions": ["Marah", "Lelah"]}',
-      },
-    ],
-  };
-
-  const payload = {
-    contents: [...history, extractionPrompt],
-    generationConfig: {
-      response_mime_type: "application/json", // Memaksa output menjadi JSON
-    },
-  };
-
-  try {
-    console.log("Memulai ekstraksi emosi...");
-    const response = await fetch(`${GEMINI_CONFIG.ENDPOINT_URL}?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-    const jsonString = data.candidates[0].content.parts[0].text;
-    const result = JSON.parse(jsonString);
-
-    if (result.emotions) {
-      // Simpan hasil ke emotion logs untuk WordCloud
-      const currentLogs = JSON.parse(localStorage.getItem("mindai_emotion_logs") || "[]");
-      const updatedLogs = [...currentLogs, ...result.emotions];
-      localStorage.setItem("mindai_emotion_logs", JSON.stringify(updatedLogs));
-
-      console.log("Ekstraksi berhasil:", result.emotions);
-      return result.emotions;
-    }
-  } catch (error) {
-    console.error("Extraction Error:", error);
-  }
+  return extractEmotionLabelsFromHistory(readChatHistory(), { force: true });
 }
