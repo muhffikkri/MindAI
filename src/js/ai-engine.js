@@ -6,13 +6,14 @@
 
 const GEMINI_CONFIG = {
   // Menggunakan v1beta agar mendukung fitur system_instruction dan JSON response
-  ENDPOINT_URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+  ENDPOINT_URL: "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
   SYSTEM_INSTRUCTION:
     "Kamu adalah MindAI, sebuah kecerdasan buatan interaktif yang bertindak sebagai konselor psikologis penyabar, ramah, hangat, dan terlatih khusus menggunakan metode Terapi Somatik untuk membantu individu dengan Alexithymia. Jangan pernah memulai obrolan dengan pertanyaan abstrak seperti 'Apa yang kamu rasakan hari ini?'. Fokuslah memandu pengguna untuk mengidentifikasi kondisi fisik tubuh mereka terlebih dahulu (seperti ketegangan otot di pundak, detak jantung, atau suhu tangan) atau gunakan analogi metafora (seperti cuaca atau warna). Gunakan kalimat pendek, menenangkan, dan jangan menghakimi.",
 };
 
 const GEMINI_KEY_STORAGE = "mindai_gemini_key";
-const LOCAL_ENV_CANDIDATES = ["../.env", "../../.env", "./.env"];
+const LOCAL_ENV_PATH = "/.env";
+const CHAT_HISTORY_STORAGE = "mindai_chat_history";
 let cachedLocalEnv = null;
 
 function parseEnvFile(envText) {
@@ -44,19 +45,14 @@ async function loadLocalEnvConfig() {
     return cachedLocalEnv;
   }
 
-  for (const candidate of LOCAL_ENV_CANDIDATES) {
-    try {
-      const response = await fetch(candidate, { cache: "no-store" });
-      if (!response.ok) {
-        continue;
-      }
-
-      const parsedEnv = parseEnvFile(await response.text());
-      cachedLocalEnv = parsedEnv;
-      return parsedEnv;
-    } catch (error) {
-      continue;
+  try {
+    const response = await fetch(LOCAL_ENV_PATH, { cache: "no-store" });
+    if (response.ok) {
+      cachedLocalEnv = parseEnvFile(await response.text());
+      return cachedLocalEnv;
     }
+  } catch (error) {
+    // Abaikan dan kembalikan objek kosong jika root .env tidak bisa diambil.
   }
 
   cachedLocalEnv = {};
@@ -81,6 +77,130 @@ function setStoredGeminiApiKey(apiKey) {
 function clearStoredGeminiApiKey() {
   localStorage.removeItem(GEMINI_KEY_STORAGE);
 }
+
+function readChatHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(CHAT_HISTORY_STORAGE) || "[]");
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeChatHistory(history) {
+  localStorage.setItem(CHAT_HISTORY_STORAGE, JSON.stringify(history));
+}
+
+function appendChatHistory(entry) {
+  const history = readChatHistory();
+  history.push(entry);
+  writeChatHistory(history);
+  return history;
+}
+
+function formatChatTime(date = new Date()) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function escapeHtml(text) {
+  const map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  };
+
+  return text.replace(/[&<>"']/g, (character) => map[character]);
+}
+
+function appendAssistantMessage(messageText) {
+  const chatContainer = document.getElementById("chat-messages");
+  if (!chatContainer) {
+    return null;
+  }
+
+  const safeMessage = escapeHtml(messageText);
+  const messageTime = formatChatTime();
+  const botHtml = `
+    <div class="message bot-message">
+      <div class="message-avatar">S</div>
+      <div class="message-content">
+        <div class="message-bubble">${safeMessage}</div>
+        <span class="message-time">${messageTime}</span>
+      </div>
+    </div>
+  `;
+
+  chatContainer.insertAdjacentHTML("beforeend", botHtml);
+  return chatContainer.lastElementChild;
+}
+
+function buildStarterPrompt(weather, colorEnergy) {
+  return [
+    "Kamu adalah MindAI, asisten chat yang memulai percakapan lebih dulu.",
+    "Tulis satu pesan pembuka yang hangat, menenangkan, singkat, dan terasa seperti ajakan hadir bersama pengguna.",
+    `Gunakan metafora cuaca yang sesuai dengan kondisi pengguna: ${weather}.`,
+    `Sisipkan referensi energi spektrum ${colorEnergy}/100 secara natural, tanpa terdengar teknis berlebihan.`,
+    "Jangan bertanya hal abstrak seperti 'Apa yang kamu rasakan hari ini?'.",
+    "Ajak pengguna mengenali sensasi fisik yang paling mudah dirasakan dulu, misalnya dada, pundak, napas, atau suhu tangan.",
+    "Output hanya satu pesan untuk dikirim langsung ke pengguna, tanpa daftar, tanpa label, tanpa tanda kutip tambahan.",
+  ].join(" ");
+}
+
+function buildAssistantPrompt(userMessage) {
+  return [
+    "Kamu adalah MindAI, konselor psikologis yang sabar, ramah, hangat, dan fokus pada terapi somatik.",
+    "Balas secara singkat, menenangkan, dan tidak menghakimi.",
+    "Bantu pengguna mengenali sensasi fisik sebelum interpretasi emosi.",
+    "Gunakan 1-3 kalimat saja.",
+    `Pesan pengguna: ${userMessage}`,
+  ].join(" ");
+}
+
+async function generateStarterGreeting(weather, colorEnergy) {
+  const responseText = await fetchGeminiResponse([
+    {
+      role: "user",
+      parts: [{ text: buildStarterPrompt(weather, colorEnergy) }],
+    },
+  ]);
+
+  return (
+    responseText?.trim() ||
+    `Selamat datang di MindAI. Cuaca batinmu terasa ${weather} hari ini, dan energimu ada di ${colorEnergy}/100. Kita tidak perlu buru-buru. Coba rasakan dulu: apakah dada, pundak, atau napasmu terasa agak berat, kaku, atau justru lebih ringan sekarang?`
+  );
+}
+
+async function generateAssistantReply(historyLog, userMessage) {
+  const responseText = await fetchGeminiResponse([
+    ...historyLog,
+    {
+      role: "user",
+      parts: [{ text: buildAssistantPrompt(userMessage) }],
+    },
+  ]);
+
+  return responseText?.trim() || "Aku ada di sini bersamamu. Coba perhatikan dulu bagian tubuh mana yang paling terasa tidak nyaman saat ini.";
+}
+
+window.MindAIChatEngine = {
+  appendChatHistory,
+  buildAssistantPrompt,
+  buildStarterPrompt,
+  clearStoredGeminiApiKey,
+  fetchGeminiResponse,
+  formatChatTime,
+  generateAssistantReply,
+  generateStarterGreeting,
+  getStoredGeminiApiKey,
+  loadLocalEnvConfig,
+  readChatHistory,
+  resolveGeminiApiKey,
+  setStoredGeminiApiKey,
+  writeChatHistory,
+};
 
 async function resolveGeminiApiKey() {
   const storedKey = getStoredGeminiApiKey();
@@ -109,23 +229,25 @@ window.MindAIKeyManager = {
  * @description Fungsi perantara untuk menginjeksikan sapaan pembuka AI ke UI.
  */
 async function triggerAIFirstGreeting(weather, colorEnergy) {
-  const chatContainer = document.getElementById("chat-messages");
+  const history = readChatHistory();
+  const alreadyStarted = history.some((entry) => entry.role === "model");
 
-  let systemGreeting = `Selamat datang di MindAI. Aku melihat langit internalmu hari ini sedang sedikit ${weather} (Energi Spektrum: ${colorEnergy}/100), ya? Tidak apa-apa, mari kita temani kondisi itu sejenak di sini. Sambil beristirahat, apakah kamu merasakan ada bagian tubuhmu—mungkin di area dada atau pundak—yang terasa agak berat atau kaku saat ini? Ceritakan pelan-pelan.`;
+  if (alreadyStarted) {
+    return null;
+  }
 
-  // Render greeting ke UI
-  const botHtml = `
-        <div class="flex flex-col items-start space-y-1 max-w-[80%] mb-4">
-            <span class="text-xs text-gray-400 font-medium">MindAI Bot</span>
-            <div class="bg-gray-100 text-gray-800 p-3.5 rounded-2xl rounded-tl-none text-sm leading-relaxed">${systemGreeting}</div>
-        </div>
-    `;
-  chatContainer.insertAdjacentHTML("beforeend", botHtml);
-
-  // Inisialisasi history awal dengan sapaan bot
-  const history = JSON.parse(localStorage.getItem("mindai_chat_history") || "[]");
-  history.push({ role: "model", parts: [{ text: systemGreeting }] });
-  localStorage.setItem("mindai_chat_history", JSON.stringify(history));
+  try {
+    const systemGreeting = await generateStarterGreeting(weather, colorEnergy);
+    appendAssistantMessage(systemGreeting);
+    appendChatHistory({ role: "model", parts: [{ text: systemGreeting }] });
+    return systemGreeting;
+  } catch (error) {
+    console.error("Starter greeting error:", error);
+    const fallbackGreeting = `Selamat datang di MindAI. Aku akan temani kamu pelan-pelan hari ini. Coba rasakan dulu, bagian tubuh mana yang paling terasa berat atau tegang saat ini?`;
+    appendAssistantMessage(fallbackGreeting);
+    appendChatHistory({ role: "model", parts: [{ text: fallbackGreeting }] });
+    return fallbackGreeting;
+  }
 }
 
 /**
@@ -165,7 +287,14 @@ async function fetchGeminiResponse(historyLog) {
     }
 
     const data = await response.json();
-    const botResponse = data.candidates[0].content.parts[0].text;
+    const botResponse = data?.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || "")
+      .join("")
+      .trim();
+
+    if (!botResponse) {
+      throw new Error("Respons AI kosong atau tidak valid.");
+    }
 
     return botResponse;
   } catch (error) {
@@ -181,7 +310,7 @@ async function fetchGeminiResponse(historyLog) {
  */
 async function runHiddenEmotionExtraction() {
   const apiKey = await resolveGeminiApiKey();
-  const history = JSON.parse(localStorage.getItem("mindai_chat_history") || "[]");
+  const history = readChatHistory();
 
   if (history.length < 2) return; // Belum cukup konteks
 

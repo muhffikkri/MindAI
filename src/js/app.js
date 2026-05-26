@@ -98,7 +98,7 @@ function registerUIEventListeners() {
   // Navigation Switch from Mood Canvas Onboarding to Active AI Chat Interface
   const btnStartChat = document.getElementById("btn-start-chat");
   if (btnStartChat) {
-    btnStartChat.addEventListener("click", () => {
+    btnStartChat.addEventListener("click", async () => {
       if (!appState.selectedWeather) {
         alert("Harap pilih metafora visual cuaca Anda terlebih dahulu.");
         return;
@@ -109,7 +109,7 @@ function registerUIEventListeners() {
 
       // Trigger initial sequence injection wrapper
       if (typeof triggerAIFirstGreeting === "function") {
-        triggerAIFirstGreeting(appState.selectedWeather, document.getElementById("color-range").value);
+        await triggerAIFirstGreeting(appState.selectedWeather, document.getElementById("color-range").value);
       }
     });
   }

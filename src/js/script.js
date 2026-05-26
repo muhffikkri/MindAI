@@ -63,6 +63,47 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (!chatInput || !sendBtn) return;
 
+  const aiEngine = window.MindAIChatEngine || window.MindAIKeyManager || null;
+
+  function scrollToBottom(target = chatMessages) {
+    if (!target) return;
+
+    target.scrollTop = target.scrollHeight;
+  }
+
+  function readChatHistory() {
+    try {
+      return JSON.parse(localStorage.getItem("mindai_chat_history") || "[]");
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function writeChatHistory(history) {
+    localStorage.setItem("mindai_chat_history", JSON.stringify(history));
+  }
+
+  function pushChatHistory(role, text) {
+    const history = readChatHistory();
+    history.push({ role, parts: [{ text }] });
+    writeChatHistory(history);
+    return history;
+  }
+
+  function appendMessage(role, text, timeLabel = getCurrentTime()) {
+    const messageEl = document.createElement("div");
+    messageEl.className = `message ${role === "model" ? "bot-message" : "user-message"}`;
+    messageEl.innerHTML = `
+      <div class="message-avatar">${role === "model" ? "S" : "A"}</div>
+      <div class="message-content">
+        <div class="message-bubble">${escapeHtml(text)}</div>
+        <span class="message-time">${timeLabel}</span>
+      </div>
+    `;
+    chatMessages.appendChild(messageEl);
+    return messageEl;
+  }
+
   // Auto-resize textarea
   chatInput.addEventListener("input", function () {
     this.style.height = "auto";
@@ -80,47 +121,62 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  function sendMessage() {
+  async function sendMessage() {
     const message = chatInput.value.trim();
     if (!message) return;
 
-    // Add user message to chat
-    const userMessageEl = document.createElement("div");
-    userMessageEl.className = "message user-message";
-    userMessageEl.innerHTML = `
-      <div class="message-avatar">A</div>
-      <div class="message-content">
-        <div class="message-bubble">${escapeHtml(message)}</div>
-        <span class="message-time">${getCurrentTime()}</span>
-      </div>
-    `;
-    chatMessages.appendChild(userMessageEl);
+    const historyBeforeUserMessage = readChatHistory();
+
+    appendMessage("user", message);
+    pushChatHistory("user", message);
 
     // Clear input
     chatInput.value = "";
     chatInput.style.height = "auto";
 
     // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    scrollToBottom();
 
-    // Simulate bot response after a delay
-    setTimeout(() => {
-      addBotResponse(message);
-    }, 1000);
-  }
-
-  function addBotResponse(userMessage) {
-    const botMessageEl = document.createElement("div");
-    botMessageEl.className = "message bot-message";
-    botMessageEl.innerHTML = `
+    const typingEl = document.createElement("div");
+    typingEl.className = "message bot-message";
+    typingEl.innerHTML = `
       <div class="message-avatar">S</div>
       <div class="message-content">
-        <div class="message-bubble">Thank you for sharing. I'm here to listen and support you through this.</div>
+        <div class="message-bubble">MindAI sedang menulis balasan...</div>
         <span class="message-time">${getCurrentTime()}</span>
       </div>
     `;
-    chatMessages.appendChild(botMessageEl);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.appendChild(typingEl);
+    scrollToBottom();
+
+    try {
+      const historyLog = historyBeforeUserMessage;
+      const assistantReply = aiEngine?.generateAssistantReply
+        ? await aiEngine.generateAssistantReply(historyLog, message)
+        : aiEngine?.fetchGeminiResponse
+          ? await aiEngine.fetchGeminiResponse([...historyLog, { role: "user", parts: [{ text: message }] }])
+          : null;
+
+      typingEl.remove();
+
+      if (!assistantReply) {
+        appendMessage("model", "Aku belum bisa mengambil respons saat ini. Coba kirim ulang sebentar lagi.");
+        pushChatHistory("model", "Aku belum bisa mengambil respons saat ini. Coba kirim ulang sebentar lagi.");
+        scrollToBottom();
+        return;
+      }
+
+      appendMessage("model", assistantReply);
+      pushChatHistory("model", assistantReply);
+      scrollToBottom();
+    } catch (error) {
+      typingEl.remove();
+      console.error("Chat response error:", error);
+      const fallbackMessage = "Aku mengalami kendala saat mengambil respons AI. Coba lagi sebentar ya.";
+      appendMessage("model", fallbackMessage);
+      pushChatHistory("model", fallbackMessage);
+      scrollToBottom();
+    }
   }
 
   function getCurrentTime() {
