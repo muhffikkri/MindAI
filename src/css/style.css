@@ -1148,6 +1148,12 @@ body {
   margin-bottom: 24px;
 }
 
+.chart-wrapper {
+  position: relative;
+  height: 250px;
+  width: 100%;
+}
+
 .chart-card h3 {
   font-size: 16px;
   font-weight: 600;
@@ -2048,4 +2054,76 @@ body {
   .sidebar-header {
     padding-top: 82px;
   }
+}
+
+/* ── Emotion Scores Section (Mood Check) ── */
+.emotion-scores-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.emotion-scores-section h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.emotion-scores-section .form-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.emotion-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.emotion-score-row:last-child {
+  border-bottom: none;
+}
+
+.emotion-score-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.emotion-score-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-ctrl {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--color-sage);
+  background: white;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  transition: all 0.15s ease;
+}
+
+.score-ctrl:hover {
+  background: var(--color-sage);
+  color: white;
+}
+
+.score-value {
+  font-size: 1rem;
+  font-weight: 600;
+  min-width: 1.5rem;
+  text-align: center;
+  color: var(--text-primary);
 }

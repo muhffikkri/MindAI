@@ -132,6 +132,7 @@ function saveEmotionExtractionResult(labels, userMessageCount) {
   const updatedLogs = [
     ...currentLogs,
     {
+      source: "ai_summary",
       timestamp: new Date().toISOString(),
       userMessageCount,
       emotions: labels,
