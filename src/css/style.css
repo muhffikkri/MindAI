@@ -2049,3 +2049,347 @@ body {
     padding-top: 82px;
   }
 }
+
+/* ===========================
+   FIX LAYOUT UTAMA
+   =========================== */
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.app-shell {
+  height: 100dvh;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.main-content {
+  margin-left: 260px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg-main);
+}
+
+/* ===========================
+   SIDEBAR TANPA SCROLL
+   =========================== */
+
+.sidebar {
+  width: 260px;
+  background: var(--primary);
+  color: white;
+  padding: 24px 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100dvh;
+  overflow: hidden; /* jangan scroll */
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  flex-shrink: 0;
+}
+
+.nav-menu {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 12px;
+  overflow: hidden; /* jangan scroll */
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 24px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+/* ===========================
+   CHAT SUPAYA INPUT SELALU DI BAWAH
+   =========================== */
+
+.chat-container {
+  flex: 1;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-panel {
+  background: var(--bg-main);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  height: 100%;
+}
+
+.chat-header {
+  flex-shrink: 0;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chat-input-wrapper {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-main);
+  position: relative; /* jangan sticky */
+  bottom: auto;
+  z-index: 20;
+  box-shadow: 0 -8px 20px rgba(66, 100, 71, 0.06);
+}
+
+.input-container {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  resize: none;
+  max-height: 100px;
+}
+
+/* ===========================
+   FINAL CHAT + SIDEBAR FIX
+   =========================== */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.app-shell {
+  height: 100dvh;
+  display: flex;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 260px;
+  height: 100dvh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow: hidden; /* sidebar tidak scroll */
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.nav-menu {
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar-footer {
+  margin-top: auto; /* profil selalu di bawah */
+  flex-shrink: 0;
+}
+
+.main-content {
+  margin-left: 260px;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-main);
+}
+
+.app-header {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.spa-page.active {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* CHAT PAGE */
+#page-chat {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-container {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.chat-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--bg-main);
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-header {
+  flex-shrink: 0;
+}
+
+.chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chat-input-wrapper {
+  flex-shrink: 0;
+  margin-top: auto;
+  position: relative; /* ganti sticky */
+  bottom: auto;
+  z-index: 20;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-main);
+  box-shadow: 0 -8px 20px rgba(66, 100, 71, 0.06);
+}
+
+.chat-sidebar {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden; /* desktop tidak scroll */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chat-sidebar-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    overflow: hidden;
+  }
+
+  .sidebar.active {
+    left: 0;
+  }
+
+  .chat-container {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-sidebar {
+    display: none;
+  }
+}
+
+.sidebar { overflow-y: auto; }
+.chat-input-wrapper { position: sticky; bottom: 0; }
+
+/* ===========================
+   DESKTOP ONLY: CHAT SIDEBAR SCROLL
+   =========================== */
+@media (min-width: 1025px) {
+  .chat-sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .chat-sidebar-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;   /* Recent Topics dkk scroll di sini */
+    padding-bottom: 10px;
+  }
+}
+
+/* ===========================
+   NON-DESKTOP: HAPUS SIDEBAR KANAN
+   =========================== */
+@media (max-width: 1024px) {
+  .chat-sidebar {
+    display: none !important;
+  }
+
+  .chat-container {
+    grid-template-columns: 1fr;
+  }
+}
