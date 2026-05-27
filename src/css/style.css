@@ -2197,9 +2197,6 @@ body {
   max-height: 100px;
 }
 
-/* ===========================
-   FINAL CHAT + SIDEBAR FIX
-   =========================== */
 html,
 body {
   height: 100%;
@@ -2361,9 +2358,6 @@ body {
 .sidebar { overflow-y: auto; }
 .chat-input-wrapper { position: sticky; bottom: 0; }
 
-/* ===========================
-   DESKTOP ONLY: CHAT SIDEBAR SCROLL
-   =========================== */
 @media (min-width: 1025px) {
   .chat-sidebar {
     display: flex;
@@ -2381,9 +2375,6 @@ body {
   }
 }
 
-/* ===========================
-   NON-DESKTOP: HAPUS SIDEBAR KANAN
-   =========================== */
 @media (max-width: 1024px) {
   .chat-sidebar {
     display: none !important;
@@ -2391,5 +2382,176 @@ body {
 
   .chat-container {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .spa-page.active {
+    display: block;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .page-container {
+    padding: 20px 16px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px 16px 12px;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .hero-content {
+    width: 100%;
+  }
+
+  .hero-content h2 {
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .hero-content p {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+
+  .hero-image {
+    display: none; /* biar rapi di mobile */
+  }
+
+  .features {
+    padding: 28px 16px;
+  }
+
+  .features h3 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 100%;
+  }
+
+  .feature-card {
+    padding: 22px 18px;
+    text-align: left;
+  }
+
+  .feature-icon {
+    margin: 0 0 14px 0;
+  }
+
+  .cta {
+    padding: 28px 16px;
+  }
+
+  .cta h3 {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .stats-grid,
+  .resource-grid,
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-card,
+  .chart-card,
+  .insight-card,
+  .resource-card {
+    padding: 18px;
+  }
+
+  .emotion-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mood-spectrum {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .slider-legend {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  html,
+  body {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .app-shell {
+    min-height: 100dvh;
+    height: auto;
+    overflow: visible;
+  }
+
+  .main-content {
+    margin-left: 0;
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #page-home {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  #page-home .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  #page-home .hero-image {
+    display: none;
+  }
+
+  #page-home .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #page-home .page-container,
+  #page-home .hero,
+  #page-home .features,
+  #page-home .cta {
+    width: 100%;
   }
 }
