@@ -272,7 +272,7 @@
               <h3>Select Your Emotions</h3>
               <div class="emotion-grid">
                 <button type="button" class="emotion-btn emotion-calm" data-emotion="calm"><span class="emotion-icon">🫧</span><span>Calm</span></button>
-                <button type="button" class="emotion-btn emotion-anxious active" data-emotion="anxious"><span class="emotion-icon">⚡</span><span>Anxious</span></button>
+                <button type="button" class="emotion-btn emotion-anxious" data-emotion="anxious"><span class="emotion-icon">⚡</span><span>Anxious</span></button>
                 <button type="button" class="emotion-btn emotion-happy" data-emotion="happy"><span class="emotion-icon">🌤️</span><span>Happy</span></button>
                 <button type="button" class="emotion-btn emotion-sad" data-emotion="sad"><span class="emotion-icon">🌧️</span><span>Sad</span></button>
                 <button type="button" class="emotion-btn emotion-grateful" data-emotion="grateful"><span class="emotion-icon">💚</span><span>Grateful</span></button>
@@ -281,6 +281,11 @@
                 <button type="button" class="emotion-btn emotion-energized" data-emotion="energized"><span class="emotion-icon">💥</span><span>Energized</span></button>
                 <button type="button" class="emotion-btn emotion-stressed" data-emotion="stressed"><span class="emotion-icon">🌀</span><span>Stressed</span></button>
                 <button type="button" class="emotion-btn emotion-peaceful" data-emotion="peaceful"><span class="emotion-icon">🌿</span><span>Peaceful</span></button>
+              </div>
+              <div id="emotion-scores-section" class="hidden emotion-scores-section">
+                <h4>Emotion Intensity</h4>
+                <p class="form-hint">Atur intensitas setiap emosi (1=ringan, 10=sangat terasa)</p>
+                <div id="emotion-scores-list"></div>
               </div>
             </div>
 
@@ -343,7 +348,6 @@
         </section>
         <!-- DASHBOARD SECTION -->
         <section class="spa-page" id="page-dashboard" data-page="dashboard">
-          <!-- DASHBOARD SECTION -->
           <div class="page-container">
             <div class="page-header">
               <h2>Your Analytics</h2>
@@ -352,87 +356,50 @@
 
             <div class="stats-grid">
               <div class="stat-card">
-                <div class="stat-value">12</div>
+                <div class="stat-value" id="stat-checkins">0</div>
                 <div class="stat-label">Check-ins this week</div>
               </div>
               <div class="stat-card">
-                <div class="stat-value">4.2/5</div>
+                <div class="stat-value" id="stat-avgmood">—</div>
                 <div class="stat-label">Average mood score</div>
               </div>
               <div class="stat-card">
-                <div class="stat-value">8</div>
+                <div class="stat-value" id="stat-streak">0</div>
                 <div class="stat-label">Days streak</div>
               </div>
             </div>
 
             <div class="chart-card">
-              <h3>Weekly Mood Trend</h3>
-              <div class="placeholder-chart">
-                <svg viewBox="0 0 400 200" class="simple-chart">
-                  <polyline points="10,150 70,120 130,100 190,130 250,80 310,110 370,90" fill="none" stroke="#426447" stroke-width="2" />
-                  <circle cx="10" cy="150" r="4" fill="#426447" />
-                  <circle cx="70" cy="120" r="4" fill="#426447" />
-                  <circle cx="130" cy="100" r="4" fill="#426447" />
-                  <circle cx="190" cy="130" r="4" fill="#426447" />
-                  <circle cx="250" cy="80" r="4" fill="#426447" />
-                  <circle cx="310" cy="110" r="4" fill="#426447" />
-                  <circle cx="370" cy="90" r="4" fill="#426447" />
-                </svg>
+              <h3>Mood Trend (7 days)</h3>
+              <div class="chart-wrapper">
+                <canvas id="mood-line-chart"></canvas>
               </div>
+              <p class="chart-empty" id="mood-line-empty">No mood data yet. Start with a mood check-in.</p>
+            </div>
+
+            <div class="chart-card">
+              <h3>Emotion Frequency</h3>
+              <div class="chart-wrapper">
+                <canvas id="emotion-bar-chart"></canvas>
+              </div>
+              <p class="chart-empty" id="emotion-bar-empty">No emotion data yet. Chat or check in to see your emotions.</p>
             </div>
 
             <div class="chart-card">
               <h3>Word Cloud</h3>
-              <div class="placeholder-chart">
-                <svg viewBox="0 0 400 200" class="simple-chart">
-                  <polyline points="10,150 70,120 130,100 190,130 250,80 310,110 370,90" fill="none" stroke="#426447" stroke-width="2" />
-                  <circle cx="10" cy="150" r="4" fill="#426447" />
-                  <circle cx="70" cy="120" r="4" fill="#426447" />
-                  <circle cx="130" cy="100" r="4" fill="#426447" />
-                  <circle cx="190" cy="130" r="4" fill="#426447" />
-                  <circle cx="250" cy="80" r="4" fill="#426447" />
-                  <circle cx="310" cy="110" r="4" fill="#426447" />
-                  <circle cx="370" cy="90" r="4" fill="#426447" />
-                </svg>
+              <div id="wordcloud-container" class="wordcloud-container">
+                <div id="dash-wordcloud-placeholder" class="wordcloud-placeholder">
+                  <p>No emotion data yet.</p>
+                </div>
+                <canvas id="dash-wordcloud-canvas" class="hidden"></canvas>
               </div>
             </div>
 
-            <div class="insights-grid">
-              <div class="insight-card">
-                <h3>Most Common Emotions</h3>
-                <ul class="emotion-list">
-                  <li>
-                    <span>Anxious</span>
-                    <span class="percentage">35%</span>
-                  </li>
-                  <li>
-                    <span>Focused</span>
-                    <span class="percentage">28%</span>
-                  </li>
-                  <li>
-                    <span>Tired</span>
-                    <span class="percentage">22%</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div class="insight-card">
-                <h3>Most Used Techniques</h3>
-                <ul class="technique-list">
-                  <li>
-                    <span>Box Breathing</span>
-                    <span class="count">8 times</span>
-                  </li>
-                  <li>
-                    <span>Grounding</span>
-                    <span class="count">5 times</span>
-                  </li>
-                  <li>
-                    <span>Progressive Relaxation</span>
-                    <span class="count">3 times</span>
-                  </li>
-                </ul>
-              </div>
+            <div class="chart-card">
+              <h3>Most Common Emotions</h3>
+              <ul class="emotion-list" id="emotion-list-dash">
+                <li class="emotion-list-empty">No data yet.</li>
+              </ul>
             </div>
           </div>
         </section>
@@ -630,8 +597,11 @@
       </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
     <script src="js/ai-engine.js"></script>
     <script src="js/app.js"></script>
     <script src="js/script.js"></script>
+    <script src="js/wordcloud.js"></script>
   </body>
 </html>

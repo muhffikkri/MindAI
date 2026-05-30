@@ -273,6 +273,9 @@ document.addEventListener("DOMContentLoaded", function () {
   emotionBtns.forEach((btn) => {
     btn.addEventListener("click", function () {
       this.classList.toggle("active");
+      if (typeof updateEmotionScoresDisplay === "function") {
+        updateEmotionScoresDisplay();
+      }
     });
   });
 
@@ -304,9 +307,61 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+const moodScores = {};
+
+function updateEmotionScoresDisplay() {
+  const section = document.getElementById("emotion-scores-section");
+  const list = document.getElementById("emotion-scores-list");
+  if (!section || !list) return;
+
+  const activeBtns = document.querySelectorAll("#page-mood .emotion-btn.active");
+
+  if (activeBtns.length === 0) {
+    section.classList.add("hidden");
+    return;
+  }
+
+  section.classList.remove("hidden");
+  list.innerHTML = "";
+
+  activeBtns.forEach((btn) => {
+    const label = btn.querySelector("span:last-child")?.textContent?.trim() || btn.textContent.trim();
+    const eid = btn.dataset.emotion;
+    if (!(eid in moodScores)) moodScores[eid] = 5;
+
+    const row = document.createElement("div");
+    row.className = "emotion-score-row";
+    row.innerHTML = `
+      <span class="emotion-score-label">${label}</span>
+      <div class="emotion-score-controls">
+        <button type="button" class="score-ctrl" data-eid="${eid}" data-dir="-1">−</button>
+        <span class="score-value" id="sv-${eid}">${moodScores[eid]}</span>
+        <button type="button" class="score-ctrl" data-eid="${eid}" data-dir="1">+</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll(".score-ctrl").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const eid = this.dataset.eid;
+      const dir = parseInt(this.dataset.dir);
+      const current = moodScores[eid] || 5;
+      moodScores[eid] = Math.max(1, Math.min(10, current + dir));
+      const display = document.getElementById(`sv-${eid}`);
+      if (display) display.textContent = moodScores[eid];
+    });
+  });
+}
+
 function saveMood() {
   const activeEmotionButtons = Array.from(document.querySelectorAll("#page-mood .emotion-btn.active"));
-  const selectedEmotions = activeEmotionButtons.map((button) => button.querySelector("span:last-child")?.textContent?.trim() || button.textContent.trim());
+  const selectedEmotions = activeEmotionButtons.map((btn) => {
+    const label = btn.querySelector("span:last-child")?.textContent?.trim() || btn.textContent.trim();
+    const eid = btn.dataset.emotion;
+    const score = moodScores[eid] || 5;
+    return { label, score };
+  });
   const selectedSensations = Array.from(document.querySelectorAll('#page-mood .sensation-grid input[type="checkbox"]:checked'))
     .map((checkbox) => checkbox.nextElementSibling?.nextElementSibling?.textContent?.trim() || checkbox.closest("label")?.innerText.trim())
     .filter(Boolean);
@@ -319,7 +374,9 @@ function saveMood() {
   }
 
   try {
+    const labelList = selectedEmotions.map((e) => e.label);
     const entry = {
+      source: "mood_check",
       timestamp: new Date().toISOString(),
       moodValue: Number(moodValue),
       emotions: selectedEmotions,
@@ -331,7 +388,7 @@ function saveMood() {
     storedLogs.unshift(entry);
     localStorage.setItem("mindai_emotion_logs", JSON.stringify(storedLogs.slice(0, 50)));
 
-    showCheckinModal("success", "Check-in saved successfully.", `Saved ${selectedEmotions.join(", ")} at mood ${moodValue}/100.`, "✓");
+    showCheckinModal("success", "Check-in saved successfully.", `Saved ${labelList.join(", ")} at mood ${moodValue}/100.`, "✓");
     return true;
   } catch (error) {
     showCheckinModal("error", "Save failed.", "Your browser could not store this check-in right now.", "✕");
@@ -374,6 +431,200 @@ function hideCheckinModal() {
 
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
+}
+
+// ===========================
+// DASHBOARD RENDER ENGINE
+// ===========================
+
+let moodChartInstance = null;
+let emotionChartInstance = null;
+
+function extractLabels(emotions) {
+  if (!Array.isArray(emotions)) return [];
+  return emotions.map((e) => {
+    if (typeof e === "object" && e !== null) return String(e.label || "").trim();
+    return String(e).trim();
+  }).filter(Boolean);
+}
+
+function renderDashboard() {
+  const logs = JSON.parse(localStorage.getItem("mindai_emotion_logs") || "[]");
+  const moodChecks = logs.filter((e) => e.source === "mood_check" || (e.moodValue !== undefined && e.source !== "ai_summary"));
+
+  renderStatCards(moodChecks);
+  renderMoodTrendChart(moodChecks);
+  renderEmotionBarChart(logs);
+  renderEmotionList(logs);
+
+  if (typeof renderReflectiveWordCloud === "function") {
+    renderReflectiveWordCloud({ canvasId: "dash-wordcloud-canvas", placeholderId: "dash-wordcloud-placeholder" });
+  }
+}
+
+function renderStatCards(moodChecks) {
+  const now = new Date();
+  const weekAgo = new Date(now);
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const weekCheckins = moodChecks.filter((e) => new Date(e.timestamp) >= weekAgo).length;
+  document.getElementById("stat-checkins").textContent = weekCheckins;
+
+  const scores = moodChecks.map((e) => e.moodValue).filter((v) => typeof v === "number" && !Number.isNaN(v));
+  if (scores.length > 0) {
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    document.getElementById("stat-avgmood").textContent = avg.toFixed(1) + "/100";
+  } else {
+    document.getElementById("stat-avgmood").textContent = "—";
+  }
+
+  const uniqueDays = new Set(moodChecks.map((e) => e.timestamp?.slice(0, 10)).filter(Boolean));
+  let streak = 0;
+  const cursor = new Date(now);
+  cursor.setHours(0, 0, 0, 0);
+  while (uniqueDays.has(cursor.toISOString().slice(0, 10))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  document.getElementById("stat-streak").textContent = streak;
+}
+
+function renderMoodTrendChart(moodChecks) {
+  const canvas = document.getElementById("mood-line-chart");
+  const emptyMsg = document.getElementById("mood-line-empty");
+  if (!canvas) return;
+
+  if (moodChartInstance) moodChartInstance.destroy();
+
+  const dayMap = {};
+  const now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    dayMap[key] = { label: d.toLocaleDateString("en", { weekday: "short" }), values: [] };
+  }
+
+  moodChecks.forEach((e) => {
+    const key = e.timestamp?.slice(0, 10);
+    if (dayMap[key] && typeof e.moodValue === "number") dayMap[key].values.push(e.moodValue);
+  });
+
+  const labels = [];
+  const data = [];
+  Object.entries(dayMap).forEach(([_, v]) => {
+    labels.push(v.label);
+    data.push(v.values.length > 0 ? v.values.reduce((a, b) => a + b, 0) / v.values.length : null);
+  });
+
+  const hasData = data.some((v) => v !== null);
+  if (emptyMsg) emptyMsg.classList.toggle("hidden", hasData);
+  if (emptyMsg) emptyMsg.style.display = hasData ? "none" : "block";
+  canvas.style.display = hasData ? "block" : "none";
+
+  if (!hasData || typeof Chart === "undefined") return;
+
+  const ctx = canvas.getContext("2d");
+  canvas.parentElement.style.position = "relative";
+  moodChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Mood Score",
+        data,
+        borderColor: "#9CAF88",
+        backgroundColor: "rgba(156, 175, 136, 0.15)",
+        borderWidth: 2,
+        pointBackgroundColor: "#9CAF88",
+        pointRadius: 4,
+        fill: true,
+        tension: 0.3,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 100, ticks: { stepSize: 25, color: "#a5a8a0" }, grid: { color: "rgba(194,200,191,0.2)" } },
+        x: { ticks: { color: "#a5a8a0" }, grid: { display: false } },
+      },
+    },
+  });
+}
+
+function renderEmotionBarChart(logs) {
+  const canvas = document.getElementById("emotion-bar-chart");
+  const emptyMsg = document.getElementById("emotion-bar-empty");
+  if (!canvas) return;
+
+  if (emotionChartInstance) emotionChartInstance.destroy();
+
+  const freq = {};
+  logs.forEach((entry) => {
+    const labels = extractLabels(entry.emotions);
+    labels.forEach((l) => { freq[l] = (freq[l] || 0) + 1; });
+  });
+
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const hasData = sorted.length > 0;
+
+  if (emptyMsg) emptyMsg.classList.toggle("hidden", hasData);
+  if (emptyMsg) emptyMsg.style.display = hasData ? "none" : "block";
+  canvas.style.display = hasData ? "block" : "none";
+
+  if (!hasData || typeof Chart === "undefined") return;
+
+  const ctx = canvas.getContext("2d");
+  emotionChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: sorted.map(([l]) => l),
+      datasets: [{
+        label: "Frequency",
+        data: sorted.map(([_, c]) => c),
+        backgroundColor: ["#9CAF88", "#B0C4DE", "#A3B8CC", "#8FA479", "#C5D5C0", "#7BA48B", "#D4C5A9", "#A8C5D6", "#B8C9A8", "#C0B8D6"],
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, color: "#a5a8a0" }, grid: { color: "rgba(194,200,191,0.2)" } },
+        x: { ticks: { color: "#727971", maxRotation: 45 } },
+      },
+    },
+  });
+}
+
+function renderEmotionList(logs) {
+  const list = document.getElementById("emotion-list-dash");
+  if (!list) return;
+
+  const freq = {};
+  logs.forEach((entry) => {
+    const labels = extractLabels(entry.emotions);
+    labels.forEach((l) => { freq[l] = (freq[l] || 0) + 1; });
+  });
+
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const total = sorted.reduce((s, [_, c]) => s + c, 0);
+
+  list.innerHTML = "";
+  if (sorted.length === 0) {
+    list.innerHTML = '<li class="emotion-list-empty">No data yet.</li>';
+    return;
+  }
+
+  sorted.forEach(([label, count]) => {
+    const li = document.createElement("li");
+    const pct = total > 0 ? ((count / total) * 100).toFixed(0) : 0;
+    li.innerHTML = `<span>${label}</span><span class="percentage">${pct}%</span>`;
+    list.appendChild(li);
+  });
 }
 
 // ===========================
@@ -470,6 +721,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    if (page === "dashboard" && typeof renderDashboard === "function") {
+      renderDashboard();
+    }
   }
 
   // Keep placeholder links from triggering the original smooth-scroll handler.
