@@ -127,6 +127,21 @@ function normalizeEmotionLabels(labels) {
     .slice(0, 5);
 }
 
+function sanitizeGeminiHistory(history = []) {
+  return history
+    .map((entry) => ({
+      role: entry?.role,
+      parts: Array.isArray(entry?.parts)
+        ? entry.parts
+            .map((part) => ({
+              text: typeof part?.text === "string" ? part.text : "",
+            }))
+            .filter((part) => part.text)
+        : [],
+    }))
+    .filter((entry) => entry.role && entry.parts.length > 0);
+}
+
 function saveEmotionExtractionResult(labels, userMessageCount) {
   const currentLogs = JSON.parse(localStorage.getItem(EMOTION_LOGS_STORAGE) || "[]");
   const updatedLogs = [
@@ -270,8 +285,10 @@ async function extractEmotionLabelsFromHistory(history = readChatHistory(), opti
     ],
   };
 
+  const sanitizedHistory = sanitizeGeminiHistory(history);
+
   const payload = {
-    contents: [...history, extractionPrompt],
+    contents: [...sanitizedHistory, extractionPrompt],
     generationConfig: {
       response_mime_type: "application/json",
     },
@@ -401,7 +418,7 @@ async function fetchGeminiResponse(historyLog) {
   }
 
   const payload = {
-    contents: historyLog,
+    contents: sanitizeGeminiHistory(historyLog),
     system_instruction: {
       parts: [{ text: GEMINI_CONFIG.SYSTEM_INSTRUCTION }],
     },

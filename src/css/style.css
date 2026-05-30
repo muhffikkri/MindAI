@@ -1751,7 +1751,7 @@ body {
   }
 
   .page-header {
-    padding-left: 0;
+    padding-left: 18px;
   }
 
   .page-header h2 {
@@ -1923,7 +1923,6 @@ body {
     max-width: 100%;
   }
 }
-
 
 @media (max-width: 768px) {
   .sidebar {
