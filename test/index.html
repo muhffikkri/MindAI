@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindAI Test Runner</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f2ea;
+        --panel: #ffffff;
+        --text: #1f241f;
+        --muted: #66706a;
+        --border: rgba(66, 100, 71, 0.16);
+        --success: #2f7d55;
+        --danger: #b44747;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: linear-gradient(180deg, #f7f3eb 0%, #f0ede5 100%);
+        color: var(--text);
+        font-family: Inter, Arial, sans-serif;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      p {
+        margin: 0 0 16px;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      }
+
+      .panel {
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: var(--panel);
+        box-shadow: 0 18px 40px rgba(31, 36, 31, 0.06);
+      }
+
+      .fixture {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .fixture .spa-page {
+        border: 1px dashed rgba(66, 100, 71, 0.14);
+        border-radius: 14px;
+        margin-top: 12px;
+        padding: 12px;
+      }
+
+      .test-list {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .test-item {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: #fcfbf8;
+      }
+
+      .test-item.pass {
+        border-color: rgba(47, 125, 85, 0.28);
+        background: rgba(47, 125, 85, 0.06);
+      }
+
+      .test-item.fail {
+        border-color: rgba(180, 71, 71, 0.28);
+        background: rgba(180, 71, 71, 0.06);
+      }
+
+      .status {
+        min-width: 54px;
+        font-weight: 700;
+      }
+
+      .status.pass {
+        color: var(--success);
+      }
+
+      .status.fail {
+        color: var(--danger);
+      }
+
+      .summary {
+        margin-top: 14px;
+        font-weight: 600;
+      }
+
+      .summary.pass {
+        color: var(--success);
+      }
+
+      .summary.fail {
+        color: var(--danger);
+      }
+
+      .fixture-shell {
+        background: #f9f7f2;
+        border-radius: 16px;
+        padding: 12px;
+      }
+
+      .wordcloud-stage {
+        width: 520px;
+        max-width: 100%;
+        height: 320px;
+        margin-top: 12px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: #fff;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+    <script>
+      localStorage.setItem("mindai_gemini_key", "test-key");
+      localStorage.setItem("mindai_chat_history", JSON.stringify([]));
+      localStorage.setItem("mindai_emotion_logs", JSON.stringify([]));
+      localStorage.setItem("mindai_emotion_extraction_meta", JSON.stringify({}));
+      window.alert = () => {};
+      window.confirm = () => true;
+    </script>
+  </head>
+  <body>
+    <h1>MindAI Test Runner</h1>
+    <p>Unit dan integration test untuk flow app, localStorage, mobile layout structure, dan wordcloud.</p>
+
+    <div class="grid">
+      <section class="panel fixture">
+        <h2>Fixture</h2>
+        <div class="fixture-shell">
+          <div class="app-shell">
+            <nav class="sidebar" id="sidebar">
+              <div class="sidebar-header">
+                <div class="brand-row">
+                  <div class="logo-mark">🧠</div>
+                  <div>
+                    <div class="brand-title">MindAI</div>
+                    <div class="brand-tagline">WELLNESS</div>
+                  </div>
+                </div>
+                <div class="sidebar-mobile-actions" aria-label="Mobile quick actions">
+                  <button class="action-btn" type="button" title="Notifications"></button>
+                  <button class="action-btn" type="button" title="Help"></button>
+                </div>
+              </div>
+            </nav>
+
+            <main class="main-content">
+              <header class="app-header">
+                <button class="hamburger" id="hamburger" type="button" aria-label="Open navigation">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </button>
+                <div class="header-brand">
+                  <div class="logo-mark">🧠</div>
+                  <h1>MindAI</h1>
+                </div>
+                <div class="header-actions">
+                  <button class="action-btn" type="button" title="Notifications"></button>
+                  <button class="action-btn" type="button" title="Help"></button>
+                  <div class="user-avatar-header">A</div>
+                </div>
+              </header>
+
+              <section class="spa-page active" id="page-home" data-page="home"></section>
+              <section class="spa-page" id="page-chat" data-page="chat">
+                <div id="chat-messages"></div>
+                <textarea id="chat-input"></textarea>
+                <button id="send-btn" type="button"></button>
+              </section>
+              <section class="spa-page" id="page-mood" data-page="mood">
+                <input id="mood-slider" type="range" value="50" />
+                <span id="slider-display">50</span>
+                <div id="emotion-scores-section" class="hidden emotion-scores-section"></div>
+                <div class="emotion-btn emotion-calm"><span></span><span>Calm</span></div>
+              </section>
+              <section class="spa-page" id="page-dashboard" data-page="dashboard">
+                <div id="stat-checkins">0</div>
+                <div id="stat-avgmood">—</div>
+                <div id="stat-streak">0</div>
+                <canvas id="mood-line-chart"></canvas>
+                <p id="mood-line-empty"></p>
+                <canvas id="emotion-bar-chart"></canvas>
+                <p id="emotion-bar-empty"></p>
+                <div id="wordcloud-container" class="wordcloud-container" style="width: 100%; height: 320px">
+                  <div id="dash-wordcloud-placeholder" class="wordcloud-placeholder hidden"></div>
+                  <canvas id="dash-wordcloud-canvas" class="hidden"></canvas>
+                </div>
+                <ul id="emotion-list-dash" class="emotion-list"></ul>
+              </section>
+              <section class="spa-page" id="page-settings" data-page="settings">
+                <button id="btn-open-settings" type="button"></button>
+                <button id="btn-close-settings" type="button"></button>
+                <button id="btn-distress" type="button"></button>
+                <button id="btn-close-coping" type="button"></button>
+                <input id="api-key-input" type="password" />
+                <p id="api-key-status"></p>
+                <button id="btn-save-settings" type="button"></button>
+                <button id="btn-clear-api-key" type="button"></button>
+                <button id="btn-clear-data" type="button"></button>
+              </section>
+              <section class="spa-page" id="page-resources" data-page="resources"></section>
+            </main>
+          </div>
+          <div class="wordcloud-stage">
+            <canvas id="wordcloud-canvas"></canvas>
+            <div id="wordcloud-placeholder" class="wordcloud-placeholder hidden"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Results</h2>
+        <ul id="test-results" class="test-list"></ul>
+        <div id="test-summary" class="summary">Running tests...</div>
+      </section>
+    </div>
+
+    <script src="../src/js/ai-engine.js"></script>
+    <script src="../src/js/app.js"></script>
+    <script src="../src/js/script.js"></script>
+    <script src="../src/js/wordcloud.js"></script>
+    <script src="./run-tests.js"></script>
+  </body>
+</html>

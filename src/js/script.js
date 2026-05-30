@@ -442,10 +442,12 @@ let emotionChartInstance = null;
 
 function extractLabels(emotions) {
   if (!Array.isArray(emotions)) return [];
-  return emotions.map((e) => {
-    if (typeof e === "object" && e !== null) return String(e.label || "").trim();
-    return String(e).trim();
-  }).filter(Boolean);
+  return emotions
+    .map((e) => {
+      if (typeof e === "object" && e !== null) return String(e.label || "").trim();
+      return String(e).trim();
+    })
+    .filter(Boolean);
 }
 
 function renderDashboard() {
@@ -461,6 +463,8 @@ function renderDashboard() {
     renderReflectiveWordCloud({ canvasId: "dash-wordcloud-canvas", placeholderId: "dash-wordcloud-placeholder" });
   }
 }
+
+window.MindAIRenderDashboard = renderDashboard;
 
 function renderStatCards(moodChecks) {
   const now = new Date();
@@ -530,17 +534,19 @@ function renderMoodTrendChart(moodChecks) {
     type: "line",
     data: {
       labels,
-      datasets: [{
-        label: "Mood Score",
-        data,
-        borderColor: "#9CAF88",
-        backgroundColor: "rgba(156, 175, 136, 0.15)",
-        borderWidth: 2,
-        pointBackgroundColor: "#9CAF88",
-        pointRadius: 4,
-        fill: true,
-        tension: 0.3,
-      }],
+      datasets: [
+        {
+          label: "Mood Score",
+          data,
+          borderColor: "#9CAF88",
+          backgroundColor: "rgba(156, 175, 136, 0.15)",
+          borderWidth: 2,
+          pointBackgroundColor: "#9CAF88",
+          pointRadius: 4,
+          fill: true,
+          tension: 0.3,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -564,10 +570,14 @@ function renderEmotionBarChart(logs) {
   const freq = {};
   logs.forEach((entry) => {
     const labels = extractLabels(entry.emotions);
-    labels.forEach((l) => { freq[l] = (freq[l] || 0) + 1; });
+    labels.forEach((l) => {
+      freq[l] = (freq[l] || 0) + 1;
+    });
   });
 
-  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const sorted = Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
   const hasData = sorted.length > 0;
 
   if (emptyMsg) emptyMsg.classList.toggle("hidden", hasData);
@@ -581,12 +591,14 @@ function renderEmotionBarChart(logs) {
     type: "bar",
     data: {
       labels: sorted.map(([l]) => l),
-      datasets: [{
-        label: "Frequency",
-        data: sorted.map(([_, c]) => c),
-        backgroundColor: ["#9CAF88", "#B0C4DE", "#A3B8CC", "#8FA479", "#C5D5C0", "#7BA48B", "#D4C5A9", "#A8C5D6", "#B8C9A8", "#C0B8D6"],
-        borderRadius: 6,
-      }],
+      datasets: [
+        {
+          label: "Frequency",
+          data: sorted.map(([_, c]) => c),
+          backgroundColor: ["#9CAF88", "#B0C4DE", "#A3B8CC", "#8FA479", "#C5D5C0", "#7BA48B", "#D4C5A9", "#A8C5D6", "#B8C9A8", "#C0B8D6"],
+          borderRadius: 6,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -607,10 +619,14 @@ function renderEmotionList(logs) {
   const freq = {};
   logs.forEach((entry) => {
     const labels = extractLabels(entry.emotions);
-    labels.forEach((l) => { freq[l] = (freq[l] || 0) + 1; });
+    labels.forEach((l) => {
+      freq[l] = (freq[l] || 0) + 1;
+    });
   });
 
-  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const sorted = Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
   const total = sorted.reduce((s, [_, c]) => s + c, 0);
 
   list.innerHTML = "";
@@ -656,12 +672,12 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const pageTitles = {
-    home: "SomaCare - Emotional Wellness",
-    chat: "Chat - SomaCare",
-    mood: "Mood Check - SomaCare",
-    dashboard: "Analytics - SomaCare",
-    resources: "Resources - SomaCare",
-    settings: "Settings - SomaCare",
+    home: "MindAI - Emotional Wellness",
+    chat: "Chat - MindAI",
+    mood: "Mood Check - MindAI",
+    dashboard: "Analytics - MindAI",
+    resources: "Resources - MindAI",
+    settings: "Settings - MindAI",
   };
 
   const navByPage = {
@@ -793,4 +809,3 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
-

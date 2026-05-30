@@ -156,4 +156,23 @@ function registerUIEventListeners() {
     hydrateApiKeyField();
     alert("API Key lokal dihapus.");
   });
+
+  document.getElementById("btn-clear-data")?.addEventListener("click", () => {
+    const confirmed = window.confirm("Hapus seluruh data chat, label, dan analytics?");
+    if (!confirmed) {
+      return;
+    }
+
+    localStorage.removeItem(STORAGE_KEYS.CHAT_HISTORY);
+    localStorage.removeItem(STORAGE_KEYS.EMOTION_LOGS);
+    localStorage.removeItem("mindai_emotion_extraction_meta");
+
+    appState.chatHistory = [];
+    appState.emotionLogs = [];
+
+    document.getElementById("chat-messages")?.replaceChildren();
+    window.MindAIRenderDashboard?.();
+
+    alert("Seluruh data chat, label, dan analytics sudah dihapus.");
+  });
 }

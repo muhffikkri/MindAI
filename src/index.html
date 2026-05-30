@@ -23,13 +23,6 @@
       </div>
     </div>
     <div class="app-shell">
-      <!-- MOBILE HAMBURGER -->
-      <button class="hamburger" id="hamburger">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
       <!-- SIDEBAR NAVIGATION -->
       <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -39,6 +32,22 @@
               <div class="brand-title">MindAI</div>
               <div class="brand-tagline">WELLNESS</div>
             </div>
+          </div>
+
+          <div class="sidebar-mobile-actions" aria-label="Mobile quick actions">
+            <button class="action-btn" type="button" title="Notifications">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </button>
+            <button class="action-btn" type="button" title="Help">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 16v-4"></path>
+                <path d="M12 8h.01"></path>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -83,6 +92,11 @@
       <!-- MAIN CONTENT -->
       <main class="main-content">
         <header class="app-header">
+          <button class="hamburger" id="hamburger" type="button" aria-label="Open navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
           <div class="header-brand">
             <div class="logo-mark">🧠</div>
             <h1>MindAI</h1>
@@ -118,7 +132,7 @@
               </div>
             </div>
             <div class="hero-image">
-              <img src="img/hero.svg" alt="Wellness" />
+              <img src="assets/deep-cf_bq1xp6wk-unsplash.jpg" alt="MindAI wellness illustration" />
             </div>
           </section>
 
@@ -583,7 +597,7 @@
               <div class="form-section">
                 <h3>Account</h3>
                 <button class="btn btn-secondary">Change Password</button>
-                <button class="btn btn-secondary" style="margin-top: 8px">Export Data</button>
+                <button class="btn btn-danger" id="btn-clear-data" type="button" style="margin-top: 8px">Clear Data</button>
                 <button class="btn btn-danger" style="margin-top: 8px">Delete Account</button>
               </div>
 

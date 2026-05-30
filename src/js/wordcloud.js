@@ -61,13 +61,13 @@ function renderReflectiveWordCloud(options = {}) {
 
   const wordFreqList =
     Object.keys(emotionCounts).length > 0
-      ? Object.entries(emotionCounts).map(([emotion, count]) => [emotion, Math.max(12, count * 8)])
+      ? Object.entries(emotionCounts).map(([emotion, count]) => [emotion, Math.max(14, count * 8)])
       : [
-          ["Cemas", 24],
-          ["Lelah", 18],
-          ["Gelisah", 15],
-          ["Kewalahan", 30],
-          ["Tenang", 12],
+          ["Cemas", 26],
+          ["Lelah", 20],
+          ["Gelisah", 17],
+          ["Kewalahan", 32],
+          ["Tenang", 14],
         ];
 
   if (typeof WordCloud !== "function" || !canvasElement) {
@@ -88,7 +88,7 @@ function renderReflectiveWordCloud(options = {}) {
   WordCloud(canvasElement, {
     list: wordFreqList,
     gridSize: Math.max(8, Math.round((canvasElement.width || 900) / 120)),
-    weightFactor: (size) => Math.max(12, size * 1.2),
+    weightFactor: (size) => Math.max(14, size * 1.25),
     fontFamily: "Inter, system-ui, sans-serif",
     color: function () {
       const colors = ["#9CAF88", "#8FA479", "#A3B8CC", "#B0C4DE"];
