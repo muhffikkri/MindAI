@@ -153,10 +153,9 @@ function registerUIEventListeners() {
       document.getElementById("mood-canvas-section").classList.add("hidden");
       document.getElementById("chat-interface-section").classList.remove("hidden");
 
-      // Trigger initial sequence injection wrapper
-      if (typeof triggerAIFirstGreeting === "function") {
-        const moodSlider = document.getElementById("mood-slider");
-        await triggerAIFirstGreeting(appState.selectedWeather, moodSlider?.value || 50);
+      // Trigger initial greeting without reading any mood or weather state.
+      if (typeof window.MindAIEnsureStarterGreeting === "function") {
+        await window.MindAIEnsureStarterGreeting();
       }
     });
   }

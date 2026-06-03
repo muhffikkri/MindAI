@@ -168,17 +168,12 @@ function appendAssistantMessage(messageText) {
   return chatContainer.lastElementChild;
 }
 
-function buildStarterPrompt(weather, colorEnergy, userName = getStoredUserName()) {
-  const personalizedGreeting = userName ? `Sapa pengguna dengan nama ${userName} jika terasa natural.` : "Jangan memaksakan nama jika tidak tersedia.";
-
+function buildStarterPrompt() {
   return [
     "Kamu adalah MindAI, asisten chat yang memulai percakapan lebih dulu.",
     "Tulis satu pesan pembuka yang hangat, menenangkan, singkat, dan terasa seperti ajakan hadir bersama pengguna.",
-    `Gunakan metafora cuaca yang sesuai dengan kondisi pengguna: ${weather}.`,
-    `Sisipkan referensi energi spektrum ${colorEnergy}/100 secara natural, tanpa terdengar teknis berlebihan.`,
-    personalizedGreeting,
     "Jangan bertanya hal abstrak seperti 'Apa yang kamu rasakan hari ini?'.",
-    "Ajak pengguna mengenali sensasi fisik yang paling mudah dirasakan dulu, misalnya dada, pundak, napas, atau suhu tangan.",
+    "Ajak pengguna untuk memperhatikan napas, bahu, atau sensasi tubuh yang paling mudah dirasakan saat ini.",
     "Output hanya satu pesan untuk dikirim langsung ke pengguna, tanpa daftar, tanpa label, tanpa tanda kutip tambahan.",
   ].join(" ");
 }
@@ -196,8 +191,8 @@ function buildAssistantPrompt(userMessage, userName = getStoredUserName()) {
   ].join(" ");
 }
 
-async function generateStarterGreeting(weather, colorEnergy, userName = getStoredUserName()) {
-  return `Selamat datang di MindAI${userName ? `, ${userName}` : ""}. Cuaca batinmu terasa ${weather} hari ini, dan energimu ada di ${colorEnergy}/100. Kita tidak perlu buru-buru. Coba rasakan dulu: apakah dada, pundak, atau napasmu terasa agak berat, kaku, atau justru lebih ringan sekarang?`;
+async function generateStarterGreeting() {
+  return "Halo. Aku MindAI, dan aku akan menemani kamu pelan-pelan. Untuk sekarang, cukup tarik napas sebentar dan perhatikan bagian tubuh yang paling terasa tegang atau tidak nyaman.";
 }
 
 async function generateAssistantReply(historyLog, userMessage) {
@@ -346,22 +341,22 @@ window.MindAIProfile = {
 /**
  * @description Fungsi perantara untuk menginjeksikan sapaan pembuka AI ke UI.
  */
-async function triggerAIFirstGreeting(weather, colorEnergy) {
-  const history = readChatHistory();
-  const alreadyStarted = history.some((entry) => entry.role === "model");
+async function triggerAIFirstGreeting() {
+  const chatContainer = document.getElementById("chat-messages");
+  const alreadyStarted = Boolean(chatContainer && chatContainer.children.length > 0);
 
   if (alreadyStarted) {
     return null;
   }
 
   try {
-    const systemGreeting = await generateStarterGreeting(weather, colorEnergy);
+    const systemGreeting = await generateStarterGreeting();
     appendAssistantMessage(systemGreeting);
     appendChatHistory({ role: "model", parts: [{ text: systemGreeting }] });
     return systemGreeting;
   } catch (error) {
     console.error("Starter greeting error:", error);
-    const fallbackGreeting = `Selamat datang di MindAI. Aku akan temani kamu pelan-pelan hari ini. Coba rasakan dulu, bagian tubuh mana yang paling terasa berat atau tegang saat ini?`;
+    const fallbackGreeting = `Halo. Aku MindAI, dan aku akan menemani kamu pelan-pelan. Untuk sekarang, cukup tarik napas sebentar dan perhatikan bagian tubuh yang paling terasa tegang atau tidak nyaman.`;
     appendAssistantMessage(fallbackGreeting);
     appendChatHistory({ role: "model", parts: [{ text: fallbackGreeting }] });
     return fallbackGreeting;

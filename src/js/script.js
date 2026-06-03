@@ -126,6 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function renderStoredChatHistory() {
     const storedHistory = readChatHistory();
     if (storedHistory.length === 0) {
+      chatMessages.replaceChildren();
       return;
     }
 
@@ -210,25 +211,21 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function ensureStarterGreeting() {
-    const currentHistory = readChatHistory();
-    const alreadyHasModelMessage = currentHistory.some((entry) => entry.role === "model");
+    const chatContainer = document.getElementById("chat-messages");
+    const alreadyHasMessage = Boolean(chatContainer && chatContainer.children.length > 0);
 
-    if (alreadyHasModelMessage) {
+    if (alreadyHasMessage) {
       return;
     }
-
-    const weather = window.MindAIAppState?.selectedWeather || "tenang";
-    const colorEnergy = window.MindAIAppState?.colorRangeValue || 50;
 
     if (typeof window.MindAIChatEngine?.generateStarterGreeting !== "function") {
       return;
     }
 
     try {
-      const starterGreeting = await window.MindAIChatEngine.generateStarterGreeting(weather, colorEnergy, window.MindAIProfile?.getStoredUserName?.() || "");
+      const starterGreeting = await window.MindAIChatEngine.generateStarterGreeting();
       appendMessage("model", starterGreeting);
       pushChatHistory("model", starterGreeting);
-      renderTodaysEmotionsSidebar();
     } catch (error) {
       console.error("Starter greeting error:", error);
     }
