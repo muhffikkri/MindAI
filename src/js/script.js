@@ -145,15 +145,108 @@ document.addEventListener("DOMContentLoaded", function () {
     scrollToBottom();
   }
 
+  function readEmotionLogs() {
+    try {
+      return JSON.parse(localStorage.getItem("mindai_emotion_logs") || "[]");
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function extractEmotionLabelsFromLogs(logs) {
+    return logs
+      .flatMap((entry) => (Array.isArray(entry?.emotions) ? entry.emotions : []))
+      .map((emotion) => {
+        if (typeof emotion === "object" && emotion !== null) {
+          return String(emotion.label || "").trim();
+        }
+
+        return String(emotion || "").trim();
+      })
+      .filter(Boolean);
+  }
+
+  function renderTodaysEmotionsSidebar() {
+    const emotionContainer = document.getElementById("todays-emotions");
+    if (!emotionContainer) {
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const emotionLogs = readEmotionLogs().filter((entry) => {
+      if (!entry?.timestamp) {
+        return false;
+      }
+
+      return new Date(entry.timestamp) >= today;
+    });
+
+    const labels = extractEmotionLabelsFromLogs(emotionLogs);
+    const counts = labels.reduce((accumulator, label) => {
+      accumulator[label] = (accumulator[label] || 0) + 1;
+      return accumulator;
+    }, {});
+
+    const sortedLabels = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([label, count]) => ({ label, count }));
+
+    emotionContainer.innerHTML = "";
+
+    if (sortedLabels.length === 0) {
+      emotionContainer.innerHTML = '<span class="emotion-tag emotion-tag-empty">Belum ada label hari ini</span>';
+      return;
+    }
+
+    sortedLabels.forEach(({ label, count }) => {
+      const tag = document.createElement("span");
+      tag.className = "emotion-tag emotion-tag-live";
+      tag.textContent = `${label} · ${count}`;
+      emotionContainer.appendChild(tag);
+    });
+  }
+
+  async function ensureStarterGreeting() {
+    const currentHistory = readChatHistory();
+    const alreadyHasModelMessage = currentHistory.some((entry) => entry.role === "model");
+
+    if (alreadyHasModelMessage) {
+      return;
+    }
+
+    const weather = window.MindAIAppState?.selectedWeather || "tenang";
+    const colorEnergy = window.MindAIAppState?.colorRangeValue || 50;
+
+    if (typeof window.MindAIChatEngine?.generateStarterGreeting !== "function") {
+      return;
+    }
+
+    try {
+      const starterGreeting = await window.MindAIChatEngine.generateStarterGreeting(weather, colorEnergy, window.MindAIProfile?.getStoredUserName?.() || "");
+      appendMessage("model", starterGreeting);
+      pushChatHistory("model", starterGreeting);
+      renderTodaysEmotionsSidebar();
+    } catch (error) {
+      console.error("Starter greeting error:", error);
+    }
+  }
+
+  window.MindAIEnsureStarterGreeting = ensureStarterGreeting;
+
   async function maybeExtractEmotionLabels() {
     if (!aiEngine?.extractEmotionLabelsFromHistory) {
       return;
     }
 
     await aiEngine.extractEmotionLabelsFromHistory(readChatHistory());
+    renderTodaysEmotionsSidebar();
   }
 
   renderStoredChatHistory();
+  renderTodaysEmotionsSidebar();
 
   // Auto-resize textarea
   chatInput.addEventListener("input", function () {
@@ -222,6 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
       scrollToBottom();
 
       await maybeExtractEmotionLabels();
+      renderTodaysEmotionsSidebar();
     } catch (error) {
       typingEl.remove();
       console.error("Chat response error:", error);
@@ -230,6 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
       pushChatHistory("model", fallbackMessage);
       scrollToBottom();
       await maybeExtractEmotionLabels();
+      renderTodaysEmotionsSidebar();
     }
   }
 
@@ -389,10 +484,51 @@ function saveMood() {
     localStorage.setItem("mindai_emotion_logs", JSON.stringify(storedLogs.slice(0, 50)));
 
     showCheckinModal("success", "Check-in saved successfully.", `Saved ${labelList.join(", ")} at mood ${moodValue}/100.`, "✓");
+    resetMoodCheckinForm();
+    window.MindAIRenderDashboard?.();
     return true;
   } catch (error) {
     showCheckinModal("error", "Save failed.", "Your browser could not store this check-in right now.", "✕");
     return false;
+  }
+}
+
+function resetMoodCheckinForm() {
+  const moodSlider = document.getElementById("mood-slider");
+  const sliderDisplay = document.getElementById("slider-display");
+  const notesInput = document.getElementById("mood-notes");
+  const emotionButtons = document.querySelectorAll("#page-mood .emotion-btn.active");
+  const checkboxes = document.querySelectorAll('#page-mood .sensation-grid input[type="checkbox"]');
+
+  if (moodSlider) {
+    moodSlider.value = "50";
+    updateMoodSliderVisual(moodSlider);
+  }
+
+  if (sliderDisplay) {
+    sliderDisplay.textContent = "50";
+  }
+
+  if (notesInput) {
+    notesInput.value = "";
+  }
+
+  emotionButtons.forEach((button) => button.classList.remove("active"));
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+
+  Object.keys(moodScores).forEach((key) => {
+    delete moodScores[key];
+  });
+
+  const scoresSection = document.getElementById("emotion-scores-section");
+  const scoresList = document.getElementById("emotion-scores-list");
+  if (scoresSection) {
+    scoresSection.classList.add("hidden");
+  }
+  if (scoresList) {
+    scoresList.innerHTML = "";
   }
 }
 
@@ -500,28 +636,44 @@ function renderMoodTrendChart(moodChecks) {
 
   if (moodChartInstance) moodChartInstance.destroy();
 
-  const dayMap = {};
+  const pointsByDay = {};
   const now = new Date();
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
     const key = d.toISOString().slice(0, 10);
-    dayMap[key] = { label: d.toLocaleDateString("en", { weekday: "short" }), values: [] };
+    pointsByDay[key] = {
+      index: 6 - i,
+      label: d.toLocaleDateString("en", { weekday: "short" }),
+      dateLabel: d.toLocaleDateString("id", { day: "2-digit", month: "short" }),
+      points: [],
+    };
   }
 
-  moodChecks.forEach((e) => {
-    const key = e.timestamp?.slice(0, 10);
-    if (dayMap[key] && typeof e.moodValue === "number") dayMap[key].values.push(e.moodValue);
+  const sortedChecks = [...moodChecks].filter((entry) => typeof entry?.moodValue === "number" && !Number.isNaN(entry.moodValue) && entry?.timestamp).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  sortedChecks.forEach((entry) => {
+    const key = entry.timestamp.slice(0, 10);
+    const dayBucket = pointsByDay[key];
+    if (!dayBucket) return;
+
+    const sameDayPointCount = dayBucket.points.length;
+    const spread = 0.12;
+    const offset = (sameDayPointCount - (sameDayPointCount > 0 ? (sameDayPointCount - 1) / 2 : 0)) * spread;
+
+    dayBucket.points.push({
+      x: dayBucket.index + offset,
+      y: entry.moodValue,
+      timestamp: entry.timestamp,
+      moodValue: entry.moodValue,
+      label: dayBucket.label,
+      dateLabel: dayBucket.dateLabel,
+    });
   });
 
-  const labels = [];
-  const data = [];
-  Object.entries(dayMap).forEach(([_, v]) => {
-    labels.push(v.label);
-    data.push(v.values.length > 0 ? v.values.reduce((a, b) => a + b, 0) / v.values.length : null);
-  });
+  const data = Object.values(pointsByDay).flatMap((bucket) => bucket.points);
 
-  const hasData = data.some((v) => v !== null);
+  const hasData = data.length > 0;
   if (emptyMsg) emptyMsg.classList.toggle("hidden", hasData);
   if (emptyMsg) emptyMsg.style.display = hasData ? "none" : "block";
   canvas.style.display = hasData ? "block" : "none";
@@ -531,30 +683,64 @@ function renderMoodTrendChart(moodChecks) {
   const ctx = canvas.getContext("2d");
   canvas.parentElement.style.position = "relative";
   moodChartInstance = new Chart(ctx, {
-    type: "line",
+    type: "scatter",
     data: {
-      labels,
       datasets: [
         {
           label: "Mood Score",
           data,
-          borderColor: "#9CAF88",
-          backgroundColor: "rgba(156, 175, 136, 0.15)",
-          borderWidth: 2,
+          showLine: false,
+          borderColor: "rgba(156, 175, 136, 0.24)",
+          backgroundColor: "#9CAF88",
           pointBackgroundColor: "#9CAF88",
-          pointRadius: 4,
-          fill: true,
-          tension: 0.3,
+          pointBorderColor: "#ffffff",
+          pointBorderWidth: 1.5,
+          pointRadius: 5,
+          pointHoverRadius: 7,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title(context) {
+              const item = context?.[0]?.raw;
+              if (!item) return "Mood check-in";
+              return `${item.label}, ${item.dateLabel}`;
+            },
+            label(context) {
+              const item = context.raw || {};
+              return `Mood ${item.moodValue}/100`;
+            },
+            afterLabel(context) {
+              const item = context.raw || {};
+              return item.timestamp ? new Date(item.timestamp).toLocaleTimeString("id", { hour: "2-digit", minute: "2-digit" }) : "";
+            },
+          },
+        },
+      },
       scales: {
         y: { min: 0, max: 100, ticks: { stepSize: 25, color: "#a5a8a0" }, grid: { color: "rgba(194,200,191,0.2)" } },
-        x: { ticks: { color: "#a5a8a0" }, grid: { display: false } },
+        x: {
+          min: -0.5,
+          max: 6.5,
+          ticks: {
+            color: "#a5a8a0",
+            callback(value) {
+              const dayIndex = Math.round(Number(value));
+              const dayNames = Object.values(pointsByDay)
+                .sort((a, b) => a.index - b.index)
+                .map((item) => item.label);
+
+              return dayIndex >= 0 && dayIndex < dayNames.length ? dayNames[dayIndex] : "";
+            },
+          },
+          grid: { display: false },
+        },
       },
     },
   });
@@ -740,6 +926,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (page === "dashboard" && typeof renderDashboard === "function") {
       renderDashboard();
+    }
+
+    if (page === "chat" && typeof window.MindAIEnsureStarterGreeting === "function") {
+      void window.MindAIEnsureStarterGreeting();
+    }
+
+    if (typeof window.MindAIHydrateUserProfile === "function") {
+      window.MindAIHydrateUserProfile();
+    }
+
+    if (typeof window.MindAIHydrateApiKeyField === "function") {
+      window.MindAIHydrateApiKeyField();
     }
   }
 

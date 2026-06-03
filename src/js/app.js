@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   CHAT_HISTORY: "mindai_chat_history",
   EMOTION_LOGS: "mindai_emotion_logs",
   GEMINI_KEY: "mindai_gemini_key",
+  USER_NAME: "mindai_user_name",
 };
 
 // Global Application State Manager Object
@@ -23,6 +24,7 @@ let appState = {
 document.addEventListener("DOMContentLoaded", () => {
   initStorageEngine();
   registerUIEventListeners();
+  hydrateUserProfile();
   void checkApiKeyPresence();
   hydrateApiKeyField();
 });
@@ -37,9 +39,14 @@ function initStorageEngine() {
   if (!localStorage.getItem(STORAGE_KEYS.EMOTION_LOGS)) {
     localStorage.setItem(STORAGE_KEYS.EMOTION_LOGS, JSON.stringify([]));
   }
+  if (!localStorage.getItem(STORAGE_KEYS.USER_NAME)) {
+    localStorage.setItem(STORAGE_KEYS.USER_NAME, "");
+  }
 
   appState.chatHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.CHAT_HISTORY));
   appState.emotionLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.EMOTION_LOGS));
+
+  window.MindAIAppState = appState;
 }
 
 /**
@@ -47,38 +54,77 @@ function initStorageEngine() {
  */
 async function checkApiKeyPresence() {
   const keyManager = window.MindAIKeyManager;
-  const key = keyManager ? await keyManager.resolveGeminiApiKey() : localStorage.getItem(STORAGE_KEYS.GEMINI_KEY);
+  const storedKey = keyManager ? keyManager.getStoredGeminiApiKey() : localStorage.getItem(STORAGE_KEYS.GEMINI_KEY);
+  const key = keyManager ? await keyManager.resolveGeminiApiKey() : storedKey;
   const statusText = document.getElementById("api-key-status");
+  const noticeText = document.getElementById("api-key-notice");
 
-  if (!key || key.trim() === "") {
-    console.warn("Gemini API Key is empty. Restricting Chat Interface Access.");
+  if (!storedKey || storedKey.trim() === "") {
+    console.warn("Gemini API Key is missing from localStorage. Demo guidance will be shown in Settings.");
     if (statusText) {
-      statusText.textContent = "Belum ada key tersimpan. Tambahkan di bawah atau lewat file .env lokal.";
+      statusText.textContent = key ? "localStorage kosong, tetapi aplikasi masih menemukan sumber key lain untuk sesi ini." : "Belum ada key tersimpan di localStorage.";
     }
 
-    document.getElementById("page-settings")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    document.getElementById("api-key-input")?.focus();
+    if (noticeText) {
+      noticeText.textContent = "Belum ada API key di localStorage. Untuk demo, silakan input API key di Settings agar chat AI bisa digunakan.";
+      noticeText.classList.remove("hidden");
+    }
     return;
   }
 
   if (statusText) {
-    statusText.textContent = keyManager && keyManager.getStoredGeminiApiKey() ? "Menggunakan key dari localStorage." : "Menggunakan key dari file .env lokal atau konfigurasi browser.";
+    statusText.textContent = "Menggunakan key dari localStorage.";
+  }
+
+  if (noticeText) {
+    noticeText.classList.add("hidden");
   }
 }
 
 function hydrateApiKeyField() {
   const input = document.getElementById("api-key-input");
   const statusText = document.getElementById("api-key-status");
+  const noticeText = document.getElementById("api-key-notice");
   const storedKey = window.MindAIKeyManager?.getStoredGeminiApiKey() || localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || "";
 
-  if (input && storedKey) {
+  if (input) {
     input.value = storedKey;
   }
 
   if (statusText) {
     statusText.textContent = storedKey ? "Key tersimpan di localStorage dan akan diprioritaskan." : "Jika localStorage kosong, aplikasi mencoba membaca file .env lokal.";
   }
+
+  if (noticeText && !storedKey) {
+    noticeText.textContent = "Belum ada API key di localStorage. Untuk demo, masukkan API key di sini agar MindAI bisa memulai chat AI.";
+    noticeText.classList.remove("hidden");
+  }
 }
+
+function hydrateUserProfile() {
+  const nameInput = document.getElementById("user-name-input");
+  const storedName = window.MindAIProfile?.getStoredUserName() || localStorage.getItem(STORAGE_KEYS.USER_NAME) || "";
+  const displayName = storedName || "Alex";
+  const avatarLetter = displayName.trim().charAt(0).toUpperCase() || "A";
+
+  if (nameInput) {
+    nameInput.value = storedName;
+  }
+
+  document.querySelectorAll(".user-name, #sidebar-user-name").forEach((element) => {
+    element.textContent = displayName;
+  });
+
+  const avatarElements = [document.getElementById("sidebar-user-avatar"), document.getElementById("header-user-avatar")];
+  avatarElements.forEach((avatarEl) => {
+    if (avatarEl) {
+      avatarEl.textContent = avatarLetter;
+    }
+  });
+}
+
+window.MindAIHydrateApiKeyField = hydrateApiKeyField;
+window.MindAIHydrateUserProfile = hydrateUserProfile;
 
 /**
  * @description Registrasi seluruh event listener interaksi komponen UI.
@@ -109,7 +155,8 @@ function registerUIEventListeners() {
 
       // Trigger initial sequence injection wrapper
       if (typeof triggerAIFirstGreeting === "function") {
-        await triggerAIFirstGreeting(appState.selectedWeather, document.getElementById("color-range").value);
+        const moodSlider = document.getElementById("mood-slider");
+        await triggerAIFirstGreeting(appState.selectedWeather, moodSlider?.value || 50);
       }
     });
   }
@@ -124,7 +171,17 @@ function registerUIEventListeners() {
   // Save Action API Key Configuration Trigger
   document.getElementById("btn-save-settings")?.addEventListener("click", () => {
     const inputEl = document.getElementById("api-key-input");
+    const nameInput = document.getElementById("user-name-input");
     const inputVal = inputEl?.value || "";
+    const inputName = nameInput?.value || "";
+
+    if (window.MindAIProfile) {
+      window.MindAIProfile.setStoredUserName(inputName);
+    } else if (inputName.trim() !== "") {
+      localStorage.setItem(STORAGE_KEYS.USER_NAME, inputName.trim());
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.USER_NAME);
+    }
 
     if (window.MindAIKeyManager) {
       const savedKey = window.MindAIKeyManager.setStoredGeminiApiKey(inputVal);
@@ -141,6 +198,7 @@ function registerUIEventListeners() {
       alert("API Key lokal dihapus. Aplikasi akan mencoba memakai file .env lokal bila tersedia.");
     }
 
+    hydrateUserProfile();
     hydrateApiKeyField();
   });
 

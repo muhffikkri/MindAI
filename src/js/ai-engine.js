@@ -12,6 +12,7 @@ const GEMINI_CONFIG = {
 };
 
 const GEMINI_KEY_STORAGE = "mindai_gemini_key";
+const USER_NAME_STORAGE = "mindai_user_name";
 const LOCAL_ENV_PATH = "/.env";
 const CHAT_HISTORY_STORAGE = "mindai_chat_history";
 const EMOTION_LOGS_STORAGE = "mindai_emotion_logs";
@@ -78,6 +79,21 @@ function setStoredGeminiApiKey(apiKey) {
 
 function clearStoredGeminiApiKey() {
   localStorage.removeItem(GEMINI_KEY_STORAGE);
+}
+
+function getStoredUserName() {
+  return localStorage.getItem(USER_NAME_STORAGE)?.trim() || "";
+}
+
+function setStoredUserName(userName) {
+  const normalizedName = userName.trim();
+  if (normalizedName) {
+    localStorage.setItem(USER_NAME_STORAGE, normalizedName);
+  } else {
+    localStorage.removeItem(USER_NAME_STORAGE);
+  }
+
+  return normalizedName;
 }
 
 function readChatHistory() {
@@ -197,40 +213,36 @@ function appendAssistantMessage(messageText) {
   return chatContainer.lastElementChild;
 }
 
-function buildStarterPrompt(weather, colorEnergy) {
+function buildStarterPrompt(weather, colorEnergy, userName = getStoredUserName()) {
+  const personalizedGreeting = userName ? `Sapa pengguna dengan nama ${userName} jika terasa natural.` : "Jangan memaksakan nama jika tidak tersedia.";
+
   return [
     "Kamu adalah MindAI, asisten chat yang memulai percakapan lebih dulu.",
     "Tulis satu pesan pembuka yang hangat, menenangkan, singkat, dan terasa seperti ajakan hadir bersama pengguna.",
     `Gunakan metafora cuaca yang sesuai dengan kondisi pengguna: ${weather}.`,
     `Sisipkan referensi energi spektrum ${colorEnergy}/100 secara natural, tanpa terdengar teknis berlebihan.`,
+    personalizedGreeting,
     "Jangan bertanya hal abstrak seperti 'Apa yang kamu rasakan hari ini?'.",
     "Ajak pengguna mengenali sensasi fisik yang paling mudah dirasakan dulu, misalnya dada, pundak, napas, atau suhu tangan.",
     "Output hanya satu pesan untuk dikirim langsung ke pengguna, tanpa daftar, tanpa label, tanpa tanda kutip tambahan.",
   ].join(" ");
 }
 
-function buildAssistantPrompt(userMessage) {
+function buildAssistantPrompt(userMessage, userName = getStoredUserName()) {
+  const personalizationHint = userName ? `Jika relevan, panggil pengguna dengan nama ${userName}.` : "Jika nama belum tersedia, tetap gunakan sapaan yang hangat tanpa memaksakan nama.";
+
   return [
     "Kamu adalah MindAI, konselor psikologis yang sabar, ramah, hangat, dan fokus pada terapi somatik.",
     "Balas secara singkat, menenangkan, dan tidak menghakimi.",
     "Bantu pengguna mengenali sensasi fisik sebelum interpretasi emosi.",
+    personalizationHint,
     "Gunakan 1-3 kalimat saja.",
     `Pesan pengguna: ${userMessage}`,
   ].join(" ");
 }
 
-async function generateStarterGreeting(weather, colorEnergy) {
-  const responseText = await fetchGeminiResponse([
-    {
-      role: "user",
-      parts: [{ text: buildStarterPrompt(weather, colorEnergy) }],
-    },
-  ]);
-
-  return (
-    responseText?.trim() ||
-    `Selamat datang di MindAI. Cuaca batinmu terasa ${weather} hari ini, dan energimu ada di ${colorEnergy}/100. Kita tidak perlu buru-buru. Coba rasakan dulu: apakah dada, pundak, atau napasmu terasa agak berat, kaku, atau justru lebih ringan sekarang?`
-  );
+async function generateStarterGreeting(weather, colorEnergy, userName = getStoredUserName()) {
+  return `Selamat datang di MindAI${userName ? `, ${userName}` : ""}. Cuaca batinmu terasa ${weather} hari ini, dan energimu ada di ${colorEnergy}/100. Kita tidak perlu buru-buru. Coba rasakan dulu: apakah dada, pundak, atau napasmu terasa agak berat, kaku, atau justru lebih ringan sekarang?`;
 }
 
 async function generateAssistantReply(historyLog, userMessage) {
@@ -349,11 +361,13 @@ window.MindAIChatEngine = {
   generateAssistantReply,
   generateStarterGreeting,
   getStoredGeminiApiKey,
+  getStoredUserName,
   loadLocalEnvConfig,
   readChatHistory,
   resolveGeminiApiKey,
   saveEmotionExtractionResult,
   setStoredGeminiApiKey,
+  setStoredUserName,
   shouldExtractEmotionLabels,
   writeEmotionExtractionMeta,
   writeChatHistory,
@@ -380,6 +394,11 @@ window.MindAIKeyManager = {
   clearStoredGeminiApiKey,
   resolveGeminiApiKey,
   loadLocalEnvConfig,
+};
+
+window.MindAIProfile = {
+  getStoredUserName,
+  setStoredUserName,
 };
 
 /**
@@ -414,7 +433,7 @@ async function triggerAIFirstGreeting(weather, colorEnergy) {
 async function fetchGeminiResponse(historyLog) {
   const apiKey = await resolveGeminiApiKey();
   if (!apiKey) {
-    alert("API Key Kosong! Silakan atur token Anda di panel Settings.");
+    alert("API Key belum terdeteksi di localStorage. Untuk demo, silakan input API key di Settings agar chat AI bisa berjalan.");
     return null;
   }
 

@@ -1193,6 +1193,15 @@ body {
   font-size: 12px;
 }
 
+.emotion-tag-live {
+  background: rgba(156, 175, 136, 0.18);
+  color: #edf5ea;
+}
+
+.emotion-tag-empty {
+  opacity: 0.8;
+}
+
 /* ===========================
    STATS + CHARTS
    =========================== */
@@ -1235,6 +1244,46 @@ body {
 
 .chart-card {
   margin-bottom: 24px;
+}
+
+.analytics-resource-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  margin: 32px 0 0;
+  padding: 28px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(66, 100, 71, 0.96), rgba(130, 114, 97, 0.94));
+  color: #ffffff;
+  box-shadow: 0 16px 40px rgba(40, 62, 42, 0.18);
+}
+
+.analytics-resource-section h3 {
+  margin: 6px 0 10px;
+  font-size: 24px;
+}
+
+.analytics-resource-section p {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.analytics-resource-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.analytics-resource-button {
+  justify-self: end;
+  white-space: nowrap;
+  background: #ffffff;
+  color: var(--primary);
+}
+
+.analytics-resource-button:hover {
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .chart-wrapper {
@@ -1640,6 +1689,17 @@ body {
   margin: 0 !important;
   color: var(--text-secondary);
   font-size: 13px;
+}
+
+.settings-notice {
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(230, 138, 0, 0.28);
+  border-radius: var(--radius-md);
+  background: rgba(230, 138, 0, 0.08);
+  color: #8a5300;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .toggle-switch {

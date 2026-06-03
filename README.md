@@ -11,6 +11,8 @@ Aplikasi ini dirancang untuk mendukung pengguna yang kesulitan menamai emosi sec
 - **Reflective Dashboard**: visualisasi emosi dalam bentuk chart, word cloud, dan daftar most common emotions.
 - **Somatic Coping Strategy Cards**: kartu regulasi sistem saraf seperti Box Breathing dan Grounding.
 - **Clear Data Control**: penghapusan chat history, emotion logs, dan analytics langsung dari settings.
+- **Personalized Profile**: nama user disimpan di `localStorage` supaya sapaan AI terasa lebih personal.
+- **Demo API Notice**: aplikasi menampilkan notifikasi jika API key belum ada di `localStorage`, karena input key dibutuhkan untuk demo chat AI.
 - **Persistent Context**: histori chat, label emosi, dan metadata ekstraksi disimpan di `localStorage` agar bisa dipakai lagi untuk prompt berikutnya.
 
 ## Flow Aplikasi
@@ -21,6 +23,8 @@ Aplikasi ini dirancang untuk mendukung pengguna yang kesulitan menamai emosi sec
 4. Lanjut ke chat untuk berinteraksi dengan MindAI.
 5. Buka dashboard untuk melihat trend mood, emotion frequency, word cloud, dan most common emotions.
 6. Masuk ke settings untuk mengatur API key, menghapus data, atau memeriksa status penyimpanan.
+
+Untuk deployment Vercel, route tambahan tersedia di `src/pages/` dan setiap halaman akan redirect ke state yang sesuai di `src/index.html`.
 
 ## Tech Stack
 
@@ -52,6 +56,7 @@ Proyek ini menggunakan arsitektur _zero-bundler_, jadi tidak perlu `npm install`
 3. Masukkan API key pada field **Gemini API Key**.
 4. Klik **Save API Key**.
 5. Key akan disimpan di browser melalui `localStorage` dan diprioritaskan saat aplikasi membaca konfigurasi.
+6. Isi juga nama Anda di bagian Profile supaya sapaan MindAI lebih personal.
 
 Jika Anda ingin menghapus key dari browser, klik **Clear Key**.
 

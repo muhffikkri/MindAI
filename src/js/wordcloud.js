@@ -9,7 +9,10 @@ document.addEventListener("DOMContentLoaded", () => {
     renderReflectiveWordCloud({ canvasId: "wordcloud-canvas", placeholderId: "wordcloud-placeholder" });
   }
   if (document.getElementById("dash-wordcloud-canvas")) {
-    renderReflectiveWordCloud({ canvasId: "dash-wordcloud-canvas", placeholderId: "dash-wordcloud-placeholder" });
+    const dashboardCanvas = document.getElementById("dash-wordcloud-canvas");
+    if (dashboardCanvas && dashboardCanvas.offsetParent !== null) {
+      renderReflectiveWordCloud({ canvasId: "dash-wordcloud-canvas", placeholderId: "dash-wordcloud-placeholder" });
+    }
   }
 });
 
@@ -44,6 +47,13 @@ function renderReflectiveWordCloud(options = {}) {
   if (container && canvasElement) {
     const width = Math.max(container.clientWidth, 1);
     const height = Math.max(container.clientHeight, 1);
+
+    if (width < 40 || height < 40) {
+      if (placeholder) placeholder.classList.remove("hidden");
+      if (canvasElement) canvasElement.classList.add("hidden");
+      return;
+    }
+
     const devicePixelRatio = window.devicePixelRatio || 1;
     canvasElement.width = Math.floor(width * devicePixelRatio);
     canvasElement.height = Math.floor(height * devicePixelRatio);
