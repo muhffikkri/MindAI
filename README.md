@@ -60,19 +60,9 @@ Proyek ini menggunakan arsitektur _zero-bundler_, jadi tidak perlu `npm install`
 
 Jika Anda ingin menghapus key dari browser, klik **Clear Key**.
 
-## API Key Lokal Saat Testing
+## API Key Saat Testing
 
-Selain menyimpan key di browser, Anda juga bisa menaruh file `.env` di root repository untuk testing lokal.
-
-```env
-GEMINI_API_KEY=your_api_key_here
-```
-
-Urutan prioritas key adalah:
-
-1. `localStorage` dari settings aplikasi.
-2. `window.MIND_AI_ENV` atau `window.__MIND_AI_ENV__` jika tersedia.
-3. File `.env` lokal di root project.
+MindAI sekarang hanya memakai API key yang disimpan di `localStorage` melalui settings aplikasi. Jika key belum ada, chat AI akan menampilkan notifikasi demo agar Anda mengisinya terlebih dahulu.
 
 ## Penyimpanan Data
 

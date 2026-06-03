@@ -92,7 +92,7 @@ function hydrateApiKeyField() {
   }
 
   if (statusText) {
-    statusText.textContent = storedKey ? "Key tersimpan di localStorage dan akan diprioritaskan." : "Jika localStorage kosong, aplikasi mencoba membaca file .env lokal.";
+    statusText.textContent = storedKey ? "Key tersimpan di localStorage dan akan diprioritaskan." : "Jika localStorage kosong, gunakan form ini untuk menambahkan API key demo.";
   }
 
   if (noticeText && !storedKey) {
@@ -188,14 +188,14 @@ function registerUIEventListeners() {
       if (savedKey) {
         alert("API Key berhasil disimpan di peramban lokal.");
       } else {
-        alert("API Key lokal dihapus. Aplikasi akan mencoba memakai file .env lokal bila tersedia.");
+        alert("API Key lokal dihapus. MindAI akan meminta key dari localStorage saat chat dibuka.");
       }
     } else if (inputVal.trim() !== "") {
       localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, inputVal.trim());
       alert("API Key berhasil disimpan di peramban lokal.");
     } else {
       localStorage.removeItem(STORAGE_KEYS.GEMINI_KEY);
-      alert("API Key lokal dihapus. Aplikasi akan mencoba memakai file .env lokal bila tersedia.");
+      alert("API Key lokal dihapus. MindAI akan meminta key dari localStorage saat chat dibuka.");
     }
 
     hydrateUserProfile();

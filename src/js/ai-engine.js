@@ -13,54 +13,9 @@ const GEMINI_CONFIG = {
 
 const GEMINI_KEY_STORAGE = "mindai_gemini_key";
 const USER_NAME_STORAGE = "mindai_user_name";
-const LOCAL_ENV_PATH = "/.env";
 const CHAT_HISTORY_STORAGE = "mindai_chat_history";
 const EMOTION_LOGS_STORAGE = "mindai_emotion_logs";
 const EMOTION_EXTRACTION_META_STORAGE = "mindai_emotion_extraction_meta";
-let cachedLocalEnv = null;
-
-function parseEnvFile(envText) {
-  return envText.split(/\r?\n/).reduce((accumulator, line) => {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) {
-      return accumulator;
-    }
-
-    const separatorIndex = trimmed.indexOf("=");
-    if (separatorIndex === -1) {
-      return accumulator;
-    }
-
-    const key = trimmed.slice(0, separatorIndex).trim();
-    const rawValue = trimmed.slice(separatorIndex + 1).trim();
-    const value = rawValue.replace(/^['\"]|['\"]$/g, "");
-
-    if (key) {
-      accumulator[key] = value;
-    }
-
-    return accumulator;
-  }, {});
-}
-
-async function loadLocalEnvConfig() {
-  if (cachedLocalEnv) {
-    return cachedLocalEnv;
-  }
-
-  try {
-    const response = await fetch(LOCAL_ENV_PATH, { cache: "no-store" });
-    if (response.ok) {
-      cachedLocalEnv = parseEnvFile(await response.text());
-      return cachedLocalEnv;
-    }
-  } catch (error) {
-    // Abaikan dan kembalikan objek kosong jika root .env tidak bisa diambil.
-  }
-
-  cachedLocalEnv = {};
-  return cachedLocalEnv;
-}
 
 function getStoredGeminiApiKey() {
   return localStorage.getItem(GEMINI_KEY_STORAGE)?.trim() || "";
@@ -362,7 +317,6 @@ window.MindAIChatEngine = {
   generateStarterGreeting,
   getStoredGeminiApiKey,
   getStoredUserName,
-  loadLocalEnvConfig,
   readChatHistory,
   resolveGeminiApiKey,
   saveEmotionExtractionResult,
@@ -374,18 +328,7 @@ window.MindAIChatEngine = {
 };
 
 async function resolveGeminiApiKey() {
-  const storedKey = getStoredGeminiApiKey();
-  if (storedKey) {
-    return storedKey;
-  }
-
-  const browserEnvKey = window.MIND_AI_ENV?.GEMINI_API_KEY || window.__MIND_AI_ENV__?.GEMINI_API_KEY;
-  if (browserEnvKey && browserEnvKey.trim()) {
-    return browserEnvKey.trim();
-  }
-
-  const localEnv = await loadLocalEnvConfig();
-  return (localEnv.GEMINI_API_KEY || localEnv.MIND_AI_GEMINI_KEY || "").trim();
+  return getStoredGeminiApiKey();
 }
 
 window.MindAIKeyManager = {
@@ -393,7 +336,6 @@ window.MindAIKeyManager = {
   setStoredGeminiApiKey,
   clearStoredGeminiApiKey,
   resolveGeminiApiKey,
-  loadLocalEnvConfig,
 };
 
 window.MindAIProfile = {
