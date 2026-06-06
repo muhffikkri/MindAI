@@ -113,10 +113,11 @@ document.addEventListener("DOMContentLoaded", function () {
   function appendMessage(role, text, timeLabel = getCurrentTime()) {
     const messageEl = document.createElement("div");
     messageEl.className = `message ${role === "model" ? "bot-message" : "user-message"}`;
+    const isBot = role === "model";
     messageEl.innerHTML = `
-      <div class="message-avatar">${role === "model" ? "S" : "A"}</div>
+      <div class="message-avatar">${isBot ? "S" : "A"}</div>
       <div class="message-content">
-        <div class="message-bubble">${escapeHtml(text)}</div>
+        <div class="message-bubble"${isBot ? ' tabindex="0" role="article" aria-label="Pesan dari MindAI"' : ""}>${escapeHtml(text)}</div>
         <span class="message-time">${timeLabel}</span>
       </div>
     `;
@@ -431,9 +432,9 @@ function updateEmotionScoresDisplay() {
     row.innerHTML = `
       <span class="emotion-score-label">${label}</span>
       <div class="emotion-score-controls">
-        <button type="button" class="score-ctrl" data-eid="${eid}" data-dir="-1">−</button>
+        <button type="button" class="score-ctrl" data-eid="${eid}" data-dir="-1" aria-label="Kurangi intensitas ${label}">−</button>
         <span class="score-value" id="sv-${eid}">${moodScores[eid]}</span>
-        <button type="button" class="score-ctrl" data-eid="${eid}" data-dir="1">+</button>
+        <button type="button" class="score-ctrl" data-eid="${eid}" data-dir="1" aria-label="Tambah intensitas ${label}">+</button>
       </div>
     `;
     list.appendChild(row);
@@ -540,7 +541,6 @@ function updateMoodSliderVisual(slider) {
   slider.style.background = `linear-gradient(90deg, #cfe7ff 0%, #d8f2d5 ${Math.min(value, 35)}%, #f9e3a8 ${Math.min(value, 70)}%, #f7b3b3 100%)`;
   slider.setAttribute("aria-valuenow", String(value));
   slider.setAttribute("aria-valuetext", value <= 35 ? "calm" : value <= 65 ? "balanced" : "intense");
-  slider.title = value <= 35 ? "calm" : value <= 65 ? "balanced" : "intense";
 }
 
 function showCheckinModal(type, title, message, icon) {

@@ -54,27 +54,27 @@
         </div>
 
         <div class="nav-menu">
-          <a href="#home" class="nav-link active">
+          <a href="#home" class="nav-link active" data-tooltip="Beranda">
             <span class="nav-icon">🏠</span>
             <span class="nav-text">Home</span>
           </a>
-          <a href="#chat" class="nav-link">
+          <a href="#chat" class="nav-link" data-tooltip="Dukungan Chat">
             <span class="nav-icon">💬</span>
             <span class="nav-text">Chat Support</span>
           </a>
-          <a href="#mood" class="nav-link">
+          <a href="#mood" class="nav-link" data-tooltip="Pemeriksaan Suasana Hati">
             <span class="nav-icon">🎯</span>
             <span class="nav-text">Mood Check</span>
           </a>
-          <a href="#dashboard" class="nav-link">
+          <a href="#dashboard" class="nav-link" data-tooltip="Analitik">
             <span class="nav-icon">📈</span>
             <span class="nav-text">Analytics</span>
           </a>
-          <a href="#resources" class="nav-link">
+          <a href="#resources" class="nav-link" data-tooltip="Sumber Daya">
             <span class="nav-icon">📚</span>
             <span class="nav-text">Resources</span>
           </a>
-          <a href="#settings" class="nav-link">
+          <a href="#settings" class="nav-link" data-tooltip="Pengaturan">
             <span class="nav-icon">⚙</span>
             <span class="nav-text">Settings</span>
           </a>
@@ -208,7 +208,7 @@
                 <div class="input-container">
                   <label class="sr-only" for="chat-input">Ketik pesan untuk MindAI</label>
                   <textarea id="chat-input" class="chat-input" placeholder="Type your message..." rows="1" aria-label="Ketik pesan untuk MindAI"></textarea>
-                  <button id="send-btn" class="send-button" type="button" aria-label="Kirim pesan">
+                  <button id="send-btn" class="send-button" type="button" aria-label="Kirim pesan" data-tooltip="Kirim pesan">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                       <path
                         d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.41,22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 L4.13399899,1.16820369 C3.34915502,0.9 2.40734225,1.00636533 1.77946707,1.4776575 C0.994623095,2.10604706 0.837654326,3.0486314 1.15159189,3.99701575 L3.03521743,10.4380088 C3.03521743,10.5951061 3.34915502,10.7521035 3.50612381,10.7521035 L16.6915026,11.5375905 C16.6915026,11.5375905 17.1624089,11.5375905 17.1624089,12.0088827 C17.1624089,12.4744748 16.6915026,12.4744748 16.6915026,12.4744748 Z"
@@ -357,7 +357,7 @@
             </div>
 
             <div class="form-actions">
-              <button type="button" class="btn btn-primary btn-lg" id="save-checkin-btn">Save Check-in</button>
+              <button type="button" class="btn btn-primary btn-lg" id="save-checkin-btn" aria-label="Simpan Pemeriksaan Suasana Hati">Save Check-in</button>
             </div>
           </div>
 
@@ -619,13 +619,13 @@
               <div class="form-section">
                 <h3>Account</h3>
                 <button class="btn btn-secondary">Change Password</button>
-                <button class="btn btn-danger" id="btn-clear-data" type="button" style="margin-top: 8px">Clear Data</button>
+                <button class="btn btn-danger" id="btn-clear-data" type="button" style="margin-top: 8px" aria-label="Hapus Semua Data">Clear Data</button>
                 <button class="btn btn-danger" style="margin-top: 8px">Delete Account</button>
               </div>
 
               <div class="form-actions">
-                <button class="btn btn-primary" id="btn-save-settings" type="button">Save API Key</button>
-                <button class="btn btn-secondary" id="btn-clear-api-key" type="button" style="margin-left: 8px">Clear Key</button>
+                <button class="btn btn-primary" id="btn-save-settings" type="button" aria-label="Simpan Kunci API">Save API Key</button>
+                <button class="btn btn-secondary" id="btn-clear-api-key" type="button" style="margin-left: 8px" aria-label="Hapus Kunci API">Clear Key</button>
               </div>
             </div>
           </div>

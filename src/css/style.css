@@ -96,6 +96,131 @@ body {
   top: 16px;
 }
 
+/* ===========================
+   FOCUS MANAGEMENT
+   =========================== */
+
+*:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.nav-link:focus-visible {
+  outline-color: #ffffff;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.sidebar .action-btn:focus-visible {
+  outline-color: #ffffff;
+}
+
+.emotion-btn:focus-visible {
+  border-color: var(--emotion-border, var(--primary));
+  box-shadow: 0 0 0 3px rgba(66, 100, 71, 0.2);
+  outline: none;
+}
+
+.mood-slider:focus-visible {
+  box-shadow: 0 0 0 3px rgba(66, 100, 71, 0.25);
+  outline: none;
+}
+
+.send-button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px rgba(66, 100, 71, 0.3);
+}
+
+.toggle-switch input:focus-visible + span {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.score-ctrl:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.message-bubble:focus-visible {
+  outline: 2px dashed var(--primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+
+.splash-actions .btn:focus-visible {
+  outline-color: #ffffff;
+}
+
+/* ===========================
+   ACCESSIBLE TOOLTIPS
+   =========================== */
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  position: absolute;
+  z-index: 9999;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--text-primary);
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  content: attr(data-tooltip);
+}
+
+.nav-link[data-tooltip]::after {
+  left: calc(100% + 12px);
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%) translateX(4px);
+}
+
+.nav-link[data-tooltip]:hover::after,
+.nav-link[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+.send-button[data-tooltip]::after {
+  top: auto;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+}
+
+.send-button[data-tooltip]:hover::after,
+.send-button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+[data-tooltip]:not(.nav-link):not(.send-button)::after {
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+}
+
+[data-tooltip]:not(.nav-link):not(.send-button):hover::after,
+[data-tooltip]:not(.nav-link):not(.send-button):focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(6px);
+}
+
 .skeleton {
   position: relative;
   overflow: hidden;
@@ -132,6 +257,10 @@ body {
   .skeleton,
   .skip-link {
     animation: none;
+    transition: none;
+  }
+
+  [data-tooltip]::after {
     transition: none;
   }
 }
