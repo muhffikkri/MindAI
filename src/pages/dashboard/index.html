@@ -9,13 +9,14 @@
     <link rel="stylesheet" href="../../css/style.css" />
   </head>
   <body class="bg-custom-ivory text-gray-800 min-h-screen flex">
-    <aside class="w-64 bg-custom-sage/20 border-r border-custom-sage/30 p-6 flex flex-col justify-between">
+    <a class="skip-link" href="#main-content">Lewati ke konten utama</a>
+    <aside class="w-64 bg-custom-sage/20 border-r border-custom-sage/30 p-6 flex flex-col justify-between" aria-label="Dashboard navigation">
       <div>
         <div class="flex items-center space-x-2 mb-8">
           <span class="text-2xl">🧠</span>
           <h1 class="text-xl font-bold tracking-tight text-gray-900">MindAI</h1>
         </div>
-        <nav class="space-y-3">
+        <nav class="space-y-3" aria-label="Dashboard pages">
           <a href="../../index.html" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-custom-sage/20 transition"> <span>💬</span> <span>AI Chat Interpreter</span> </a>
           <a href="./index.html" class="flex items-center space-x-3 p-3 rounded-xl bg-custom-sage/30 font-medium text-gray-900"> <span>📊</span> <span>Reflective Dashboard</span> </a>
           <a href="../coming-soon/index.html" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-custom-sage/20 transition"> <span>🧩</span> <span>Coming Soon Features</span> </a>
@@ -23,7 +24,7 @@
       </div>
     </aside>
 
-    <main class="flex-1 p-8 overflow-y-auto space-y-6">
+    <main class="flex-1 p-8 overflow-y-auto space-y-6" id="main-content" tabindex="-1">
       <header>
         <h2 class="text-3xl font-bold text-gray-900">Dasbor Refleksi Personal</h2>
         <p class="text-gray-600">Visualisasi akumulasi pemetaan kosakata emosional dari tubuh Anda.</p>
@@ -38,7 +39,7 @@
               <h4>Wordcloud preview</h4>
               <p>Placeholder visual ini akan diganti wordcloud saat log emosi sudah siap dirender.</p>
             </div>
-            <canvas id="wordcloud-canvas" class="w-full h-full hidden"></canvas>
+            <canvas id="wordcloud-canvas" class="w-full h-full hidden" role="img" aria-label="Wordcloud emosi reflektif"></canvas>
           </div>
         </div>
 

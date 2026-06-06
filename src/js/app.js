@@ -150,19 +150,35 @@ function registerUIEventListeners() {
         return;
       }
       // Switch layout visibility context
-      document.getElementById("mood-canvas-section").classList.add("hidden");
-      document.getElementById("chat-interface-section").classList.remove("hidden");
+      const moodCanvasSection = document.getElementById("mood-canvas-section");
+      const chatInterfaceSection = document.getElementById("chat-interface-section");
+
+      moodCanvasSection?.classList.add("hidden");
+      chatInterfaceSection?.classList.remove("hidden");
 
       // Trigger initial greeting without reading any mood or weather state.
       if (typeof window.MindAIEnsureStarterGreeting === "function") {
         await window.MindAIEnsureStarterGreeting();
       }
+
+      chatInterfaceSection?.setAttribute("tabindex", "-1");
+      chatInterfaceSection?.focus({ preventScroll: true });
     });
   }
 
   // Modal Control Logic Handlers (Settings & Distress)
-  document.getElementById("btn-open-settings")?.addEventListener("click", () => document.getElementById("page-settings")?.scrollIntoView({ behavior: "smooth", block: "start" }));
-  document.getElementById("btn-close-settings")?.addEventListener("click", () => document.getElementById("page-settings")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  document.getElementById("btn-open-settings")?.addEventListener("click", () => {
+    const settingsPage = document.getElementById("page-settings");
+    settingsPage?.scrollIntoView({ behavior: "smooth", block: "start" });
+    settingsPage?.setAttribute("tabindex", "-1");
+    settingsPage?.focus({ preventScroll: true });
+  });
+  document.getElementById("btn-close-settings")?.addEventListener("click", () => {
+    const settingsPage = document.getElementById("page-settings");
+    settingsPage?.scrollIntoView({ behavior: "smooth", block: "start" });
+    settingsPage?.setAttribute("tabindex", "-1");
+    settingsPage?.focus({ preventScroll: true });
+  });
 
   document.getElementById("btn-distress")?.addEventListener("click", () => document.getElementById("coping-modal").classList.remove("hidden"));
   document.getElementById("btn-close-coping")?.addEventListener("click", () => document.getElementById("coping-modal").classList.add("hidden"));

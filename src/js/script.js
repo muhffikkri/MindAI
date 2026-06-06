@@ -60,6 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const chatInput = document.getElementById("chat-input");
   const sendBtn = document.getElementById("send-btn");
   const chatMessages = document.getElementById("chat-messages");
+  const chatLoadingState = document.getElementById("chat-loading-state");
 
   if (!chatInput || !sendBtn) return;
 
@@ -268,6 +269,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const historyBeforeUserMessage = readChatHistory();
 
+    const setChatLoadingState = (isLoading) => {
+      if (chatMessages) {
+        chatMessages.setAttribute("aria-busy", String(isLoading));
+      }
+
+      if (chatLoadingState) {
+        chatLoadingState.classList.toggle("hidden", !isLoading);
+      }
+
+      sendBtn.disabled = isLoading;
+      sendBtn.setAttribute("aria-busy", String(isLoading));
+    };
+
     appendMessage("user", message);
     pushChatHistory("user", message);
 
@@ -278,16 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Scroll to bottom
     scrollToBottom();
 
-    const typingEl = document.createElement("div");
-    typingEl.className = "message bot-message";
-    typingEl.innerHTML = `
-      <div class="message-avatar">S</div>
-      <div class="message-content">
-        <div class="message-bubble">MindAI sedang menulis balasan...</div>
-        <span class="message-time">${getCurrentTime()}</span>
-      </div>
-    `;
-    chatMessages.appendChild(typingEl);
+    setChatLoadingState(true);
     scrollToBottom();
 
     try {
@@ -298,12 +303,11 @@ document.addEventListener("DOMContentLoaded", function () {
           ? await aiEngine.fetchGeminiResponse([...historyLog, { role: "user", parts: [{ text: message }] }])
           : null;
 
-      typingEl.remove();
-
       if (!assistantReply) {
         appendMessage("model", "Aku belum bisa mengambil respons saat ini. Coba kirim ulang sebentar lagi.");
         pushChatHistory("model", "Aku belum bisa mengambil respons saat ini. Coba kirim ulang sebentar lagi.");
         scrollToBottom();
+        setChatLoadingState(false);
         return;
       }
 
@@ -313,8 +317,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       await maybeExtractEmotionLabels();
       renderTodaysEmotionsSidebar();
+      setChatLoadingState(false);
     } catch (error) {
-      typingEl.remove();
       console.error("Chat response error:", error);
       const fallbackMessage = "Aku mengalami kendala saat mengambil respons AI. Coba lagi sebentar ya.";
       appendMessage("model", fallbackMessage);
@@ -322,6 +326,7 @@ document.addEventListener("DOMContentLoaded", function () {
       scrollToBottom();
       await maybeExtractEmotionLabels();
       renderTodaysEmotionsSidebar();
+      setChatLoadingState(false);
     }
   }
 
@@ -899,6 +904,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!target) return;
 
     document.querySelectorAll(".spa-page").forEach((section) => {
+      if (!section.hasAttribute("tabindex")) {
+        section.setAttribute("tabindex", "-1");
+      }
+    });
+
+    document.querySelectorAll(".spa-page").forEach((section) => {
       section.classList.toggle("active", section.dataset.page === page);
     });
 
@@ -935,6 +946,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (typeof window.MindAIHydrateApiKeyField === "function") {
       window.MindAIHydrateApiKeyField();
+    }
+
+    if (!options.skipFocus) {
+      window.requestAnimationFrame(() => {
+        target.focus({ preventScroll: true });
+      });
     }
   }
 
