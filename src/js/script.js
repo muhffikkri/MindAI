@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const hamburger = document.getElementById("hamburger");
   const sidebar = document.getElementById("sidebar");
 
+  if (typeof window.MindAIEnhanceAccessibility === "function") {
+    window.MindAIEnhanceAccessibility(document);
+  }
+
   if (hamburger) {
     hamburger.addEventListener("click", function () {
       sidebar.classList.toggle("active");
@@ -114,10 +118,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const messageEl = document.createElement("div");
     messageEl.className = `message ${role === "model" ? "bot-message" : "user-message"}`;
     const isBot = role === "model";
+    const safeLabel = escapeHtml(text);
     messageEl.innerHTML = `
       <div class="message-avatar">${isBot ? "S" : "A"}</div>
       <div class="message-content">
-        <div class="message-bubble"${isBot ? ' tabindex="0" role="article" aria-label="Pesan dari MindAI"' : ""}>${escapeHtml(text)}</div>
+        <div class="message-bubble" tabindex="0" role="article" aria-label="${isBot ? "Pesan dari MindAI: " : "Pesan pengguna: "}${safeLabel}">${safeLabel}</div>
         <span class="message-time">${timeLabel}</span>
       </div>
     `;
@@ -946,6 +951,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (typeof window.MindAIHydrateApiKeyField === "function") {
       window.MindAIHydrateApiKeyField();
+    }
+
+    if (typeof window.MindAIEnhanceAccessibility === "function") {
+      window.MindAIEnhanceAccessibility(document);
     }
 
     if (!options.skipFocus) {
